@@ -1,71 +1,96 @@
+const log4js = require('log4js');
 const sqlite3 = require('sqlite3').verbose();
 
+log4js.configure({
+  appenders: {
+    console: { type: 'console' },
+    activity: { type: 'file', filename: 'activity.log', category: 'activity' },
+  },
+  categories: {
+    default: { appenders: ['console', 'activity'], level: 'trace' },
+  },
+});
+const logger = log4js.getLogger('activity');
 let db = {};
 
 function allQuery(query, params) {
+  logger.info('allQuery: start');
   db.all(query, params, (err, rows) => {
     if (err) {
+      logger.error(`allQuery: ${err.message}`);
       throw err;
     }
+    logger.info('allQuery: successs');
     rows.forEach((row) => {
-      console.log(row.name);
+      logger.info(`allQuery: ${row.name}`);
     });
   });
 }
 
-exports.openDB = function (path) {
-  // open database in memory
+exports.openDB = (path) => {
+  logger.info('openDB: attempting to open DB');
   return new Promise((resolve, reject) => {
     db = new sqlite3.Database(path, (err) => {
       if (err) {
+        logger.error(`openDB: ${err.message}`);
         reject(err.message);
       } else {
-        console.log('Connected to the in-memory SQlite database.');
+        logger.info('openDb: connected to the in-memory SQlite database.');
         resolve(true);
       }
     });
   });
 };
 
-function createTable() {
-  const query = 'CREATE TABLE IF NOT EXISTS users (id INTEGER NOT NULL, username TEXT NOT NULL, karma INTEGER NOT NULL, UNIQUE(id))';
+function createTable(tableName) {
+  logger.info('createTable: start');
+  // TODO: see if you can find a beter way to do this
+  const query = `CREATE TABLE IF NOT EXISTS ${tableName} (id INTEGER NOT NULL, username TEXT NOT NULL, karma INTEGER NOT NULL, UNIQUE(id))`;
   return new Promise((resolve, reject) => {
-    db.exec(query, (err, row) => {
+    db.exec(query, (err) => {
       if (err) {
+        logger.error(`createTable: ${err.message}`);
         reject(err);
       } else {
-        resolve(row);
+        logger.info('createTable: success');
+        resolve(true);
       }
     });
   });
 }
 
-function setUser(id, username, karma) {
-  const query = 'INSERT OR IGNORE INTO users (id, username, karma) VALUES (?,?,?)';
+function setUser(tableName, id, username, karma) {
+  const query = `INSERT OR IGNORE INTO ${tableName} (id, username, karma) VALUES (?,?,?)`;
   allQuery(query, [parseInt(id, 10), username, karma]);
 }
 
-exports.getUsers = (ids) => {
+exports.getUsers = (tableName, ids) => {
+  logger.info('getUser: start');
   const qs = ids.map(() => '?');
-  const getQuery = `SELECT id, username, karma FROM users WHERE id in (${qs.join(',')})`;
+  const getQuery = `SELECT id, username, karma FROM ${tableName} WHERE id in (${qs.join(',')})`;
   return new Promise((resolve, reject) => {
     db.all(getQuery, ids, (err, rows) => {
       if (err) {
+        logger.error(`getUser: ${err.message}`);
         reject(err);
       } else {
+        logger.info('getUser: success');
         resolve(rows);
       }
     });
   });
 };
 
-exports.updateKarma = (id, karma) => {
-  const updateQuery = 'UPDATE users SET karma = ? WHERE id = ?';
+exports.updateKarma = (tableName, id, karma) => {
+  logger.info('updateKarma: start');
+  const updateQuery = `UPDATE ${tableName} SET karma = ? WHERE id = ?`;
   return new Promise((resolve, reject) => {
     db.run(updateQuery, [karma, id], (err) => {
       if (err) {
+        logger.error(`updateKarma: ${err.message}`);
         reject(err);
       } else {
+        logger.info('updateKarma: success');
         resolve();
       }
     });
@@ -74,10 +99,11 @@ exports.updateKarma = (id, karma) => {
 
 exports.buildGuildTables = (guilds) => {
   Array.from(guilds.values()).forEach((guild) => {
-    createTable().then(() => {
+    const tableName = guild.name.toLowerCase().replace(' ', '') + guild.id;
+    createTable(tableName).then(() => {
       Array.from(guild.members.values()).forEach((member) => {
         if (!member.user.bot) {
-          setUser(member.id, member.displayName, 0);
+          setUser(tableName, member.id, member.displayName, 0);
         }
       });
     });
@@ -85,11 +111,12 @@ exports.buildGuildTables = (guilds) => {
 };
 
 exports.closeDB = () => {
+  logger.info('closeDB: start');
   // close the database connection
   db.close((err) => {
     if (err) {
-      return console.error(err.message);
+      logger.error(`closeDB: ${err.message}`);
     }
-    return console.log('Close the database connection.');
+    logger.info('closeDB: success');
   });
 };

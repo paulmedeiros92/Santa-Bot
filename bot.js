@@ -1,7 +1,19 @@
 const Discord = require('discord.js');
+const log4js = require('log4js');
+
 const sqlite = require('./sqlite');
 const msg = require('./message');
 
+log4js.configure({
+  appenders: {
+    console: { type: 'console' },
+    activity: { type: 'file', filename: 'activity.log', category: 'activity' },
+  },
+  categories: {
+    default: { appenders: ['console', 'activity'], level: 'trace' },
+  },
+});
+const logger = log4js.getLogger('activity');
 const args = process.argv.slice(2);
 
 const client = new Discord.Client();
@@ -15,9 +27,10 @@ client.on('ready', () => {
 });
 
 client.on('message', (receivedMessage) => {
-  console.log(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}`);
-  // Prevent bot from responding to its own messages
-  if (receivedMessage.author !== client.user
+  logger.info(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}, message: "${receivedMessage.content}"`);
+  if (receivedMessage.channel.type === 'dm') {
+    msg.evaluateDM(receivedMessage);
+  } else if (receivedMessage.author !== client.user
     && receivedMessage.content.includes(client.user.toString())) {
     msg.evaluateMsg(receivedMessage);
   }
