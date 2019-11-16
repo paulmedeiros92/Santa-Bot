@@ -1,5 +1,6 @@
 const log4js = require('log4js');
 const sqlite = require('./sqlite');
+const canned = require('./canned-messages');
 
 const BOTID = '643605290842849310';
 
@@ -39,11 +40,6 @@ function who(channel) {
   sendMsg('UNDER DEVELOPMENT!!!', channel);
 }
 
-function how(channel) {
-  // TODO: display message of how to use bot
-  sendMsg('UNDER DEVELOPMENT!!!', channel);
-}
-
 function list() {
   // TODO: display karma scores within said range
 }
@@ -57,7 +53,9 @@ function updateScores(tableName, karmas, channel) {
 }
 
 // TODO: errors if user does not exist/ invalid ignore reserved @ like everyone and here
-exports.evaluateMsg = ({ channel, content, guild, mentions }) => {
+exports.evaluateMsg = ({
+  channel, content, guild, mentions,
+}) => {
   const tableName = guild.name.toLowerCase().replace(' ', '') + guild.id;
   const msg = content.toLowerCase();
   const { users } = mentions;
@@ -68,13 +66,13 @@ exports.evaluateMsg = ({ channel, content, guild, mentions }) => {
   sqlite.getUsers(tableName, userIds).then((scores) => {
     let karmas = scores;
     if (msg.includes('how')) {
-      how();
+      sendMsg(canned.generalHow, channel);
     } if (msg.includes('naughty')) {
       karmas = naughty(karmas, users, channel);
     } if (msg.includes('nice')) {
       karmas = nice(karmas, users, channel);
     } if (msg.includes('list')) {
-      how(channel);
+      list(channel);
     }
     updateScores(tableName, karmas, channel);
   });
@@ -86,7 +84,7 @@ exports.evaluateDM = ({ author, channel, content }) => {
   sqlite.getUsers([author.id]).then((scores) => {
     const karma = scores;
     if (msg.includes('how')) {
-      how(channel);
+      sendMsg(channel);
     } if (msg.includes('punish')) {
       punish(channel);
     } if (msg.includes('who')) {
