@@ -60,7 +60,7 @@ exports.evaluateMsg = ({
   const msg = content.toLowerCase();
   const { users } = mentions;
   users.delete(BOTID);
-  const userIds = Array.from(users.values()).map((user) => user.id);
+  const userIds = Array.from(users.values()).map((user) => parseInt(user.id, 10));
 
   // TODO: functionality to prevent collisions between how and the usage of other commands
   sqlite.getUsers(tableName, userIds).then((scores) => {

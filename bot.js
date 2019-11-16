@@ -16,6 +16,8 @@ log4js.configure({
 const logger = log4js.getLogger('activity');
 const args = process.argv.slice(2);
 
+// TODO: invite functionality
+
 const client = new Discord.Client();
 client.login(args[0]);
 const dbPath = '../SantaDB/SantaDB';
@@ -27,11 +29,12 @@ client.on('ready', () => {
 });
 
 client.on('message', (receivedMessage) => {
-  logger.info(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}, message: "${receivedMessage.content}"`);
   if (receivedMessage.channel.type === 'dm') {
+    logger.info(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}, message: "${receivedMessage.content}"`);
     msg.evaluateDM(receivedMessage);
   } else if (receivedMessage.author !== client.user
     && receivedMessage.content.includes(client.user.toString())) {
+    logger.info(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}, message: "${receivedMessage.content}"`);
     msg.evaluateMsg(receivedMessage);
   }
 });
