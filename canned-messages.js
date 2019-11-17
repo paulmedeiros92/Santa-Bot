@@ -4,7 +4,7 @@ const canned = {
   \t~~~list: mention Santa Bot the word list and see his list~~~\n
   \tnaughty: mention Santa Bot and someone you feel is naughty\n
   \tnice: mention Santa Bot and someone you feel is nice\n`,
-  privateHow: '',
+  privateHow: 'Whatever I want.',
 };
 
 module.exports = canned;
