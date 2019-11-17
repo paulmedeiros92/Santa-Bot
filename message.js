@@ -28,45 +28,31 @@ function nice(karmas) {
   return karmas.map(({ id, username, karma }) => ({ id, username, karma: karma + 1 }));
 }
 
-function punish(channel) {
-  // TODO: check if user can afford skill
-  // TODO: get target user karma
-  // TODO: perform action and adjust karma of source and target
-  sendMsg('UNDER DEVELOPMENT!!!', channel);
-}
-
-function who(channel) {
-  // TODO: who is in range of source users skills
-  sendMsg('UNDER DEVELOPMENT!!!', channel);
-}
-
-function list(tableName, channel) {
-  sqlite.getAllUsers(tableName, channel).then((rows) => {
+function list(channel) {
+  sqlite.getAllUsers(channel).then((rows) => {
     sendMsg(canned.buildLeaderboard(rows), channel);
   });
-  // TODO: display karma scores within said range
 }
 
-function updateScores(tableName, karmas, channel) {
+function updateScores(karmas, channel) {
   karmas.forEach(({ id, username, karma }) => {
-    sqlite.updateKarma(tableName, id, karma).then(() => {
+    sqlite.updateKarma(id, karma).then(() => {
       sendMsg(`Updated ${username}'s karma to ${karma}`, channel);
     });
   });
 }
 
 exports.evaluateMsg = ({
-  channel, content, guild, mentions, author,
+  channel, content, mentions, author,
 }) => {
   const authorID = parseInt(author.id, 10);
-  const tableName = guild.name.toLowerCase().replace(' ', '') + guild.id;
   const msg = content.toLowerCase();
   const { users } = mentions;
   users.delete(BOTID);
   const userIds = Array.from(users.values()).map((user) => parseInt(user.id, 10));
 
   // TODO: functionality to prevent collisions between how and the usage of other commands
-  sqlite.getUsers(tableName, userIds).then((scores) => {
+  sqlite.getUsers(userIds).then((scores) => {
     let karmas = scores;
     if (users.has(author.id)) {
       karmas = naughty(karmas, [authorID]);
@@ -78,10 +64,10 @@ exports.evaluateMsg = ({
       } if (msg.includes('nice')) {
         karmas = nice(karmas, users, channel);
       } if (msg.includes('list')) {
-        list(tableName, channel);
+        list(channel);
       }
     }
-    updateScores(tableName, karmas, channel);
+    updateScores(karmas, channel);
   });
 };
 

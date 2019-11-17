@@ -42,10 +42,9 @@ exports.openDB = (path) => {
   });
 };
 
-function createTable(tableName) {
+function createTable() {
   logger.info('createTable: start');
-  // TODO: see if you can find a beter way to do this
-  const query = `CREATE TABLE IF NOT EXISTS ${tableName} (id INTEGER NOT NULL, username TEXT NOT NULL, karma INTEGER NOT NULL, UNIQUE(id))`;
+  const query = 'CREATE TABLE IF NOT EXISTS users (id INTEGER NOT NULL, username TEXT NOT NULL, karma INTEGER NOT NULL, UNIQUE(id))';
   return new Promise((resolve, reject) => {
     db.exec(query, (err) => {
       if (err) {
@@ -59,15 +58,15 @@ function createTable(tableName) {
   });
 }
 
-function setUser(tableName, id, username, karma) {
-  const query = `INSERT OR IGNORE INTO ${tableName} (id, username, karma) VALUES (?,?,?)`;
+function setUser(id, username, karma) {
+  const query = 'INSERT OR IGNORE INTO users (id, username, karma) VALUES (?,?,?)';
   allQuery(query, [parseInt(id, 10), username, karma]);
 }
 
-exports.getUsers = (tableName, ids) => {
+exports.getUsers = (ids) => {
   logger.info('getUsers: start');
   const qs = ids.map(() => '?');
-  const getQuery = `SELECT id, username, karma FROM ${tableName} WHERE id in (${qs.join(',')})`;
+  const getQuery = `SELECT id, username, karma FROM users WHERE id in (${qs.join(',')})`;
   return new Promise((resolve, reject) => {
     db.all(getQuery, ids, (err, rows) => {
       if (err) {
@@ -81,9 +80,9 @@ exports.getUsers = (tableName, ids) => {
   });
 };
 
-exports.getAllUsers = (tableName) => {
+exports.getAllUsers = () => {
   logger.info('getAllUsers: start');
-  const getQuery = `SELECT id, username, karma FROM ${tableName}`;
+  const getQuery = 'SELECT id, username, karma FROM users';
   return new Promise((resolve, reject) => {
     db.all(getQuery, [], (err, rows) => {
       if (err) {
@@ -97,9 +96,9 @@ exports.getAllUsers = (tableName) => {
   });
 };
 
-exports.updateKarma = (tableName, id, karma) => {
+exports.updateKarma = (id, karma) => {
   logger.info(`updateKarma: start ${karma}`);
-  const updateQuery = `UPDATE ${tableName} SET karma = ? WHERE id = ?`;
+  const updateQuery = 'UPDATE users SET karma = ? WHERE id = ?';
   return new Promise((resolve, reject) => {
     db.run(updateQuery, [karma, id], (err) => {
       if (err) {
@@ -115,11 +114,10 @@ exports.updateKarma = (tableName, id, karma) => {
 
 exports.buildGuildTables = (guilds) => {
   Array.from(guilds.values()).forEach((guild) => {
-    const tableName = guild.name.toLowerCase().replace(' ', '') + guild.id;
-    createTable(tableName).then(() => {
+    createTable().then(() => {
       Array.from(guild.members.values()).forEach((member) => {
         if (!member.user.bot) {
-          setUser(tableName, member.id, member.displayName, 0);
+          setUser(member.id, member.displayName, 0);
         }
       });
     });

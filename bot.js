@@ -16,8 +16,6 @@ log4js.configure({
 const logger = log4js.getLogger('activity');
 const args = process.argv.slice(2);
 
-// TODO: invite functionality
-
 const client = new Discord.Client();
 client.login(args[0]);
 const dbPath = '../SantaDB/SantaDB';
