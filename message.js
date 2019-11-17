@@ -88,10 +88,11 @@ exports.evaluateMsg = ({
 exports.evaluateDM = ({ author, channel, content }) => {
   const tableName = channel.name.toLowerCase().replace(' ', '') + channel.id;
   const msg = content.toLowerCase();
+  // TODO: figure out this database shite
   sqlite.getUsers([author.id]).then((scores) => {
     const karma = scores;
     if (msg.includes('how')) {
-      sendMsg(channel);
+      sendMsg(canned.privateHow, channel);
     } if (msg.includes('punish')) {
       punish(channel);
     } if (msg.includes('who')) {
