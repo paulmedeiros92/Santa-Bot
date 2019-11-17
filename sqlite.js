@@ -42,21 +42,69 @@ exports.openDB = (path) => {
   });
 };
 
-function createTable() {
-  logger.info('createTable: start');
+function createUsersTable() {
+  logger.info('createUsersTable: start');
   const query = 'CREATE TABLE IF NOT EXISTS users (id INTEGER NOT NULL, username TEXT NOT NULL, karma INTEGER NOT NULL, UNIQUE(id))';
   return new Promise((resolve, reject) => {
     db.exec(query, (err) => {
       if (err) {
-        logger.error(`createTable: ${err.message}`);
+        logger.error(`createUsersTable: ${err.message}`);
         reject(err);
       } else {
-        logger.info('createTable: success');
+        logger.info('createUsersTable: success');
         resolve(true);
       }
     });
   });
 }
+
+function createPresentsTable() {
+  logger.info('createPresentsTable: start');
+  const query = 'CREATE TABLE IF NOT EXISTS presents (userId INTEGER NOT NULL, desc TEXT NOT NULL, ranking INTEGER NOT NULL CHECK(ranking <= 5 AND ranking > 0), UNIQUE(userId, ranking))';
+  return new Promise((resolve, reject) => {
+    db.exec(query, (err) => {
+      if (err) {
+        logger.error(`createPresentsTable: ${err.message}`);
+        reject(err);
+      } else {
+        logger.info('createPresentsTable: success');
+        resolve(true);
+      }
+    });
+  });
+}
+
+exports.setPresent = (userId, text, ranking) => {
+  logger.info(`setPresent: start ${text}`);
+  const updateQuery = 'INSERT OR REPLACE INTO presents (userId, desc, ranking) VALUES (?,?,?)';
+  return new Promise((resolve, reject) => {
+    db.run(updateQuery, [userId, text, ranking], (err) => {
+      if (err) {
+        logger.error(`updateKarma: ${err.message}`);
+        reject(err);
+      } else {
+        logger.info('updateKarma: success');
+        resolve();
+      }
+    });
+  });
+};
+
+exports.getPresents = (id) => {
+  logger.info('getPresents: start');
+  const getQuery = 'SELECT desc FROM presents WHERE userId = ? ORDER BY ranking DESC';
+  return new Promise((resolve, reject) => {
+    db.all(getQuery, [id], (err, rows) => {
+      if (err) {
+        logger.error(`getPresents: ${err.message}`);
+        reject(err);
+      } else {
+        logger.info('getPresents: success');
+        resolve(rows);
+      }
+    });
+  });
+};
 
 function setUser(id, username, karma) {
   const query = 'INSERT OR IGNORE INTO users (id, username, karma) VALUES (?,?,?)';
@@ -66,7 +114,7 @@ function setUser(id, username, karma) {
 exports.getUsers = (ids) => {
   logger.info('getUsers: start');
   const qs = ids.map(() => '?');
-  const getQuery = `SELECT id, username, karma FROM users WHERE id in (${qs.join(',')})`;
+  const getQuery = `SELECT id, username, karma FROM users WHERE id in (${qs.join(',')}) ORDER BY karma DESC`;
   return new Promise((resolve, reject) => {
     db.all(getQuery, ids, (err, rows) => {
       if (err) {
@@ -114,13 +162,14 @@ exports.updateKarma = (id, karma) => {
 
 exports.buildGuildTables = (guilds) => {
   Array.from(guilds.values()).forEach((guild) => {
-    createTable().then(() => {
+    createUsersTable().then(() => {
       Array.from(guild.members.values()).forEach((member) => {
         if (!member.user.bot) {
           setUser(member.id, member.displayName, 0);
         }
       });
     });
+    createPresentsTable();
   });
 };
 

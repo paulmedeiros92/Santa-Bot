@@ -30,7 +30,10 @@ function nice(karmas) {
 
 function list(channel) {
   sqlite.getAllUsers(channel).then((rows) => {
-    sendMsg(canned.buildLeaderboard(rows), channel);
+    // for each row get presents promise all then print message/
+    Promise.all(rows.map(({ id }) => sqlite.getPresents(id))).then((presents) => {
+      sendMsg(canned.buildLeaderboard(rows, presents), channel);
+    });
   });
 }
 
@@ -42,10 +45,16 @@ function updateScores(karmas, channel) {
   });
 }
 
+function want(userId, content, channel) {
+  const props = content.slice(content.indexOf('[') + 1, content.indexOf(']')).split(',');
+  sqlite.setPresent(userId, props[0], props[1]).then(() => {
+    sendMsg(`I just saved [${props[0]}, ${props[1]}] to your list.`, channel);
+  });
+}
+
 exports.evaluateMsg = ({
   channel, content, mentions, author,
 }) => {
-  const authorID = parseInt(author.id, 10);
   const msg = content.toLowerCase();
   const { users } = mentions;
   users.delete(BOTID);
@@ -55,7 +64,7 @@ exports.evaluateMsg = ({
   sqlite.getUsers(userIds).then((scores) => {
     let karmas = scores;
     if (users.has(author.id)) {
-      karmas = naughty(karmas, [authorID]);
+      karmas = naughty(karmas, [parseInt(author.id, 10)]);
     } else {
       if (msg.includes('how')) {
         sendMsg(canned.generalHow, channel);
@@ -71,20 +80,11 @@ exports.evaluateMsg = ({
   });
 };
 
-exports.evaluateDM = ({ author, channel, content }) => {
-  const tableName = channel.name.toLowerCase().replace(' ', '') + channel.id;
+exports.evaluateDM = ({ author, content, channel }) => {
   const msg = content.toLowerCase();
-  // TODO: figure out this database shite
-  sqlite.getUsers([author.id]).then((scores) => {
-    const karma = scores;
-    if (msg.includes('how')) {
-      sendMsg(canned.privateHow, channel);
-    } if (msg.includes('punish')) {
-      punish(channel);
-    } if (msg.includes('who')) {
-      who(channel);
-    } if (msg.includes('list')) {
-      list(channel);
-    }
-  });
+  if (msg.includes('how')) {
+    sendMsg(canned.privateHow, channel);
+  } if (msg.includes('want')) {
+    want(parseInt(author.id, 10), content, channel);
+  }
 };
