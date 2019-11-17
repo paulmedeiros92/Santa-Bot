@@ -86,5 +86,7 @@ exports.evaluateDM = ({ author, content, channel }) => {
     sendMsg(canned.privateHow, channel);
   } if (msg.includes('want')) {
     want(parseInt(author.id, 10), content, channel);
+  } if (msg.includes('list')) {
+    list(channel);
   }
 };

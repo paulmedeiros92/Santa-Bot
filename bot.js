@@ -27,7 +27,7 @@ client.on('ready', () => {
 });
 
 client.on('message', (receivedMessage) => {
-  if (receivedMessage.channel.type === 'dm') {
+  if (receivedMessage.author !== client.user && receivedMessage.channel.type === 'dm') {
     logger.info(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}, message: "${receivedMessage.content}"`);
     msg.evaluateDM(receivedMessage);
   } else if (receivedMessage.author !== client.user
