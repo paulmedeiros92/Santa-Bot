@@ -54,12 +54,20 @@ function updateScores(tableName, karmas, channel) {
 
 // TODO: errors if user does not exist/ invalid ignore reserved @ like everyone and here
 exports.evaluateMsg = ({
-  channel, content, guild, mentions,
+  channel, content, guild, mentions, author,
 }) => {
   const tableName = guild.name.toLowerCase().replace(' ', '') + guild.id;
   const msg = content.toLowerCase();
   const { users } = mentions;
   users.delete(BOTID);
+  if (users.get(author.id)) {
+    sqlite.getUsers(tableName, [author.id]).then((scores) => {
+      let karmas = scores;
+      karmas = naughty(karmas, [author.id]);
+      updateScores(tableName, karmas, channel);
+    });
+  }
+  users.delete(author.id);
   const userIds = Array.from(users.values()).map((user) => parseInt(user.id, 10));
 
   // TODO: functionality to prevent collisions between how and the usage of other commands
