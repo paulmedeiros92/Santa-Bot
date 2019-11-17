@@ -52,7 +52,6 @@ function updateScores(tableName, karmas, channel) {
   });
 }
 
-// TODO: errors if user does not exist/ invalid ignore reserved @ like everyone and here
 exports.evaluateMsg = ({
   channel, content, guild, mentions, author,
 }) => {
