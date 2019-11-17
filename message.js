@@ -40,7 +40,10 @@ function who(channel) {
   sendMsg('UNDER DEVELOPMENT!!!', channel);
 }
 
-function list() {
+function list(tableName, channel) {
+  sqlite.getAllUsers(tableName, channel).then((rows) => {
+    sendMsg(canned.buildLeaderboard(rows), channel);
+  });
   // TODO: display karma scores within said range
 }
 
@@ -55,31 +58,28 @@ function updateScores(tableName, karmas, channel) {
 exports.evaluateMsg = ({
   channel, content, guild, mentions, author,
 }) => {
+  const authorID = parseInt(author.id, 10);
   const tableName = guild.name.toLowerCase().replace(' ', '') + guild.id;
   const msg = content.toLowerCase();
   const { users } = mentions;
   users.delete(BOTID);
-  if (users.get(author.id)) {
-    sqlite.getUsers(tableName, [author.id]).then((scores) => {
-      let karmas = scores;
-      karmas = naughty(karmas, [author.id]);
-      updateScores(tableName, karmas, channel);
-    });
-  }
-  users.delete(author.id);
   const userIds = Array.from(users.values()).map((user) => parseInt(user.id, 10));
 
   // TODO: functionality to prevent collisions between how and the usage of other commands
   sqlite.getUsers(tableName, userIds).then((scores) => {
     let karmas = scores;
-    if (msg.includes('how')) {
-      sendMsg(canned.generalHow, channel);
-    } if (msg.includes('naughty')) {
-      karmas = naughty(karmas, users, channel);
-    } if (msg.includes('nice')) {
-      karmas = nice(karmas, users, channel);
-    } if (msg.includes('list')) {
-      list(channel);
+    if (users.has(author.id)) {
+      karmas = naughty(karmas, [authorID]);
+    } else {
+      if (msg.includes('how')) {
+        sendMsg(canned.generalHow, channel);
+      } if (msg.includes('naughty')) {
+        karmas = naughty(karmas, users, channel);
+      } if (msg.includes('nice')) {
+        karmas = nice(karmas, users, channel);
+      } if (msg.includes('list')) {
+        list(tableName, channel);
+      }
     }
     updateScores(tableName, karmas, channel);
   });

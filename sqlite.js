@@ -65,16 +65,32 @@ function setUser(tableName, id, username, karma) {
 }
 
 exports.getUsers = (tableName, ids) => {
-  logger.info('getUser: start');
+  logger.info('getUsers: start');
   const qs = ids.map(() => '?');
   const getQuery = `SELECT id, username, karma FROM ${tableName} WHERE id in (${qs.join(',')})`;
   return new Promise((resolve, reject) => {
     db.all(getQuery, ids, (err, rows) => {
       if (err) {
-        logger.error(`getUser: ${err.message}`);
+        logger.error(`getUsers: ${err.message}`);
         reject(err);
       } else {
-        logger.info('getUser: success');
+        logger.info('getUsers: success');
+        resolve(rows);
+      }
+    });
+  });
+};
+
+exports.getAllUsers = (tableName) => {
+  logger.info('getAllUsers: start');
+  const getQuery = `SELECT id, username, karma FROM ${tableName}`;
+  return new Promise((resolve, reject) => {
+    db.all(getQuery, [], (err, rows) => {
+      if (err) {
+        logger.error(`getAllUsers: ${err.message}`);
+        reject(err);
+      } else {
+        logger.info('getAllUsers: success');
         resolve(rows);
       }
     });
@@ -82,7 +98,7 @@ exports.getUsers = (tableName, ids) => {
 };
 
 exports.updateKarma = (tableName, id, karma) => {
-  logger.info('updateKarma: start');
+  logger.info(`updateKarma: start ${karma}`);
   const updateQuery = `UPDATE ${tableName} SET karma = ? WHERE id = ?`;
   return new Promise((resolve, reject) => {
     db.run(updateQuery, [karma, id], (err) => {
