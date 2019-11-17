@@ -12,9 +12,14 @@ const canned = {
   buildLeaderboard: (rows, presents) => {
     let msg = '```Here is the list so far:\n';
     for (let i = 0; i < rows.length; i += 1) {
-      msg += `\t${rows[i].username} has ${rows[i].karma}: and wants(`;
-      msg += presents[i].map((present) => present.desc).join(',');
-      msg += ')\n';
+      msg += `\t${rows[i].username} has ${rows[i].karma} karma`;
+      if (presents[i].length > 0) {
+        msg += ', and wants: ';
+        msg += presents[i].map((present) => present.desc).join(', ');
+        msg += '\n';
+      } else {
+        msg += '\n';
+      }
     }
     msg += '```';
     return msg;
