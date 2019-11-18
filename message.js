@@ -45,10 +45,19 @@ function updateScores(karmas, channel) {
   });
 }
 
+function openPresent(present) {
+  return present.slice(present.indexOf('[') + 1).split(',');
+}
+
 function want(userId, content, channel) {
-  const props = content.slice(content.indexOf('[') + 1, content.indexOf(']')).split(',');
-  sqlite.setPresent(userId, props[0], props[1]).then(() => {
-    sendMsg(`I just saved [${props[0]}, ${props[1]}] to your list.`, channel);
+  const presents = content.split(']').filter((raw) => raw.includes('[')).map((present) => openPresent(present));
+  sqlite.setPresents(userId, presents).then(() => {
+    let msg = 'I just saved ';
+    presents.forEach((present) => {
+      msg += `[${present[0]}, ${present[1]}] `;
+    });
+    msg += 'to your list.';
+    sendMsg(msg, channel);
   });
 }
 

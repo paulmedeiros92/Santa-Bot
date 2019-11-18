@@ -74,11 +74,16 @@ function createPresentsTable() {
   });
 }
 
-exports.setPresent = (userId, text, ranking) => {
-  logger.info(`setPresent: start ${text}`);
-  const updateQuery = 'INSERT OR REPLACE INTO presents (userId, desc, ranking) VALUES (?,?,?)';
+exports.setPresents = (userId, presents) => {
+  const valuesTxt = presents.map(() => '(?,?,?)').join(', ');
+  let values = [];
+  presents.forEach((present) => {
+    values = values.concat([userId, present[0], present[1]]);
+  });
+  logger.info('setPresent: start');
+  const updateQuery = `INSERT OR REPLACE INTO presents (userId, desc, ranking) VALUES ${valuesTxt}`;
   return new Promise((resolve, reject) => {
-    db.run(updateQuery, [userId, text, ranking], (err) => {
+    db.run(updateQuery, values, (err) => {
       if (err) {
         logger.error(`updateKarma: ${err.message}`);
         reject(err);
@@ -92,7 +97,7 @@ exports.setPresent = (userId, text, ranking) => {
 
 exports.getPresents = (id) => {
   logger.info('getPresents: start');
-  const getQuery = 'SELECT desc FROM presents WHERE userId = ? ORDER BY ranking DESC';
+  const getQuery = 'SELECT desc FROM presents WHERE userId = ? ORDER BY ranking ASC';
   return new Promise((resolve, reject) => {
     db.all(getQuery, [id], (err, rows) => {
       if (err) {
