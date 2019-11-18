@@ -116,17 +116,17 @@ function setUser(id, username, karma) {
   allQuery(query, [parseInt(id, 10), username, karma]);
 }
 
-exports.getUsers = (ids) => {
-  logger.info('getUsers: start');
+exports.getUsersById = (ids) => {
+  logger.info('getUsersById: start');
   const qs = ids.map(() => '?');
   const getQuery = `SELECT id, username, karma FROM users WHERE id in (${qs.join(',')}) ORDER BY karma DESC`;
   return new Promise((resolve, reject) => {
     db.all(getQuery, ids, (err, rows) => {
       if (err) {
-        logger.error(`getUsers: ${err.message}`);
+        logger.error(`getUsersById: ${err.message}`);
         reject(err);
       } else {
-        logger.info('getUsers: success');
+        logger.info('getUsersById: success');
         resolve(rows);
       }
     });
@@ -135,7 +135,7 @@ exports.getUsers = (ids) => {
 
 exports.getAllUsers = () => {
   logger.info('getAllUsers: start');
-  const getQuery = 'SELECT id, username, karma FROM users';
+  const getQuery = 'SELECT id, username, karma FROM users ORDER BY karma DESC';
   return new Promise((resolve, reject) => {
     db.all(getQuery, [], (err, rows) => {
       if (err) {

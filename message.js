@@ -70,7 +70,7 @@ exports.evaluateMsg = ({
   const userIds = Array.from(users.values()).map((user) => parseInt(user.id, 10));
 
   // TODO: functionality to prevent collisions between how and the usage of other commands
-  sqlite.getUsers(userIds).then((scores) => {
+  sqlite.getUsersById(userIds).then((scores) => {
     let karmas = scores;
     if (users.has(author.id)) {
       karmas = naughty(karmas, [parseInt(author.id, 10)]);
