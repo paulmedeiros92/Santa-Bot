@@ -7,7 +7,7 @@ const canned = {
   privateHow: `\`\`\`Ho Ho HoooOOOoOOOO, here's a list of the things I can do:\n
   \twant: ask for a present you want, you only get 5 though\n
   \t\t\tDescription -\t[(text description),(ranking 1-5)]\n
-  \t\t\tExample -\t\tI want a [Pony, 3]\n
+  \t\t\tExample -\t\tI want a [Pony, 3] [Gundam, 1]\n
   \`\`\``,
   buildLeaderboard: (rows, presents) => {
     let msg = '```Here is the list so far:\n';
