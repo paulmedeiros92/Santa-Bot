@@ -1,23 +1,27 @@
-const log4js = require('log4js');
 const sqlite = require('./sqlite');
 const canned = require('./canned-messages');
 
-const BOTID = '643605290842849310';
-
-log4js.configure({
-  appenders: {
-    console: { type: 'console' },
-    activity: { type: 'file', filename: 'activity.log', category: 'activity' },
-  },
-  categories: {
-    default: { appenders: ['console', 'activity'], level: 'trace' },
-  },
-});
-const logger = log4js.getLogger('activity');
-
+const BOTID = '643605290842849310'; // Santa Bot ID
+const BOTID2 = '645442655559614479'; // Test Santa Bot ID
 
 function sendMsg(msg, channel) {
   channel.send(msg);
+}
+
+function addRemoveRole(users, isNice, isNaughty, roles, guild) {
+  users.forEach(async (user) => {
+    const member = await guild.fetchMember(user);
+    if (isNice) {
+      member.addRole(roles.get('Nice'));
+      member.removeRole(roles.get('Naughty'));
+    } else if (isNaughty) {
+      member.addRole(roles.get('Naughty'));
+      member.removeRole(roles.get('Nice'));
+    } else {
+      member.removeRole(roles.get('Nice'));
+      member.removeRole(roles.get('Naughty'));
+    }
+  });
 }
 
 function naughty(karmas) {
@@ -37,9 +41,10 @@ function list(channel) {
   });
 }
 
-function updateScores(karmas, channel) {
+function updateScores(karmas, channel, users, roles, guild) {
   karmas.forEach(({ id, username, karma }) => {
     sqlite.updateKarma(id, karma).then(() => {
+      addRemoveRole(users, karma > 0, karma < 0, roles, guild);
       sendMsg(`Updated ${username}'s karma to ${karma}`, channel);
     });
   });
@@ -62,11 +67,17 @@ function want(userId, content, channel) {
 }
 
 exports.evaluateMsg = ({
-  channel, content, mentions, author,
+  channel, content, mentions, author, guild,
 }) => {
+  const roles = new Map();
+  guild.roles.forEach((role, id) => {
+    roles.set(role.name, id);
+  });
+
   const msg = content.toLowerCase();
   const { users } = mentions;
   users.delete(BOTID);
+  users.delete(BOTID2);
   const userIds = Array.from(users.values()).map((user) => parseInt(user.id, 10));
 
   // TODO: functionality to prevent collisions between how and the usage of other commands
@@ -78,14 +89,14 @@ exports.evaluateMsg = ({
       if (msg.includes('how')) {
         sendMsg(canned.generalHow, channel);
       } if (msg.includes('naughty')) {
-        karmas = naughty(karmas, users, channel);
+        karmas = naughty(karmas);
       } if (msg.includes('nice')) {
-        karmas = nice(karmas, users, channel);
+        karmas = nice(karmas);
       } if (msg.includes('list')) {
         list(channel);
       }
     }
-    updateScores(karmas, channel);
+    updateScores(karmas, channel, users, roles, guild);
   });
 };
 
