@@ -31,7 +31,7 @@ client.on('message', (receivedMessage) => {
     logger.info(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}, message: "${receivedMessage.content}"`);
     msg.evaluateDM(receivedMessage);
   } else if (receivedMessage.author !== client.user
-    && receivedMessage.content.includes(client.user.toString())) {
+    && receivedMessage.content.includes(client.user.id)) {
     logger.info(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}, message: "${receivedMessage.content}"`);
     msg.evaluateMsg(receivedMessage);
   }
