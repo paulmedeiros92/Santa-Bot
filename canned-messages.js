@@ -1,9 +1,11 @@
 const canned = {
-  generalHow: `\`\`\`Ho Ho HoooOOOoOOOO, here's a list of the things I can do:\n
-  \thow: mention Santa Bot and the word how\n
-  \tlist: mention Santa Bot and the word list and see his list\n
-  \tnaughty: mention Santa Bot and someone you feel is naughty\n
-  \tnice: mention Santa Bot and someone you feel is nice\n\`\`\``,
+  generalHow: `Ho! Ho!! Ho!!! Merry X-Mas! What can I help you with?\n
+  **naughty**: Mention someone you feel is naughty
+  \t\tex) \`@Jack is naughty\`
+  **nice**: Mention someone you feel is nice
+  \t\tex) \`@Rudolph is nice\`
+  **list**: Mention Santa Bot and the word list to see the leader board.
+  \t\tex) \`@Santa Claus may I please see your list?\``,
   privateHow: `\`\`\`Ho Ho HoooOOOoOOOO, here's a list of the things I can do:\n
   \twant: ask for a present you want, you only get 5 though\n
   \t\t\tDescription -\t[(text description),(ranking 1-5)]\n

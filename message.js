@@ -1,8 +1,9 @@
 const sqlite = require('./sqlite');
 const canned = require('./canned-messages');
+const log4js = require('./logger');
+const { BOTID, BOTID2 } = require('./constants');
 
-const BOTID = '643605290842849310'; // Santa Bot ID
-const BOTID2 = '645442655559614479'; // Test Santa Bot ID
+const logger = log4js.buildLogger;
 
 function sendMsg(msg, channel) {
   channel.send(msg);
@@ -33,12 +34,16 @@ function nice(karmas) {
 }
 
 function list(channel) {
-  sqlite.getAllUsers(channel).then((rows) => {
-    // for each row get presents promise all then print message/
-    Promise.all(rows.map(({ id }) => sqlite.getPresents(id))).then((presents) => {
-      sendMsg(canned.buildLeaderboard(rows, presents), channel);
+  sqlite.getAllUsers(channel)
+    .then((rows) => {
+      // for each row get presents promise all then print message/
+      Promise.all(rows.map(({ id }) => sqlite.getPresents(id))).then((presents) => {
+        sendMsg(canned.buildLeaderboard(rows, presents), channel);
+      });
+    })
+    .catch((rejection) => {
+      logger.error(rejection);
     });
-  });
 }
 
 function updateScores(karmas, channel, users, roles, guild) {
@@ -86,14 +91,14 @@ exports.evaluateMsg = ({
     if (users.has(author.id)) {
       karmas = naughty(karmas, [parseInt(author.id, 10)]);
     } else {
-      if (msg.includes('how')) {
-        sendMsg(canned.generalHow, channel);
-      } if (msg.includes('naughty')) {
+      if (msg.includes('naughty')) {
         karmas = naughty(karmas);
       } if (msg.includes('nice')) {
         karmas = nice(karmas);
       } if (msg.includes('list')) {
         list(channel);
+      } if (['naughty', 'nice', 'list'].every((keyword) => !msg.includes(keyword))) {
+        sendMsg(canned.generalHow, channel);
       }
     }
     updateScores(karmas, channel, users, roles, guild);

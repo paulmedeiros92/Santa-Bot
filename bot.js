@@ -3,6 +3,7 @@ const log4js = require('log4js');
 
 const sqlite = require('./sqlite');
 const msg = require('./message');
+const { dbPath } = require('./constants');
 
 log4js.configure({
   appenders: {
@@ -18,7 +19,6 @@ const args = process.argv.slice(2);
 
 const client = new Discord.Client();
 client.login(args[0]);
-const dbPath = '../SantaDB/SantaDB';
 
 client.on('ready', () => {
   sqlite.openDB(dbPath).then(() => {
@@ -31,7 +31,8 @@ client.on('message', (receivedMessage) => {
     logger.info(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}, message: "${receivedMessage.content}"`);
     msg.evaluateDM(receivedMessage);
   } else if (receivedMessage.author !== client.user
-    && receivedMessage.content.includes(client.user.id)) {
+    && (receivedMessage.content.includes(client.user.id) || ['naughty', 'nice'].some((keyword) => receivedMessage.content.includes(keyword)))
+  ) {
     logger.info(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}, message: "${receivedMessage.content}"`);
     msg.evaluateMsg(receivedMessage);
   }
