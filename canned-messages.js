@@ -6,11 +6,10 @@ const canned = {
   \t\tex) \`@Rudolph is nice\`
   **list**: Mention Santa Bot and the word list to see the leader board.
   \t\tex) \`@Santa Claus may I please see your list?\``,
-  privateHow: `\`\`\`Ho Ho HoooOOOoOOOO, here's a list of the things I can do:\n
-  \twant: ask for a present you want, you only get 5 though\n
-  \t\t\tDescription -\t[(text description),(ranking 1-5)]\n
-  \t\t\tExample -\t\tI want a [Pony, 3] [Gundam, 1]\n
-  \`\`\``,
+  privateHow: `Ho! Ho!! Ho!!! Merry X-Mas! What can I help you with?\n
+  **want**: ask for a present you want, you only get 5 though
+  \t__Description__ ~ [(text description), (ranking 1-5)]
+  \t\tex) \`I want a [Pony, 3] [Gundam, 1]\``,
   buildLeaderboard: (rows, presents) => {
     let msg = '```Here is the list so far:\n';
     for (let i = 0; i < rows.length; i += 1) {

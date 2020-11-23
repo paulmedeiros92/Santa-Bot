@@ -37,9 +37,13 @@ function list(channel) {
   sqlite.getAllUsers(channel)
     .then((rows) => {
       // for each row get presents promise all then print message/
-      Promise.all(rows.map(({ id }) => sqlite.getPresents(id))).then((presents) => {
-        sendMsg(canned.buildLeaderboard(rows, presents), channel);
-      });
+      Promise.all(rows.map(({ id }) => sqlite.getPresents(id)))
+        .then((presents) => {
+          sendMsg(canned.buildLeaderboard(rows, presents), channel);
+        })
+        .catch((rejection) => {
+          logger.error(rejection);
+        });
     })
     .catch((rejection) => {
       logger.error(rejection);
@@ -107,11 +111,11 @@ exports.evaluateMsg = ({
 
 exports.evaluateDM = ({ author, content, channel }) => {
   const msg = content.toLowerCase();
-  if (msg.includes('how')) {
-    sendMsg(canned.privateHow, channel);
-  } if (msg.includes('want')) {
+  if (msg.includes('want')) {
     want(parseInt(author.id, 10), content, channel);
   } if (msg.includes('list')) {
     list(channel);
+  } if (['want', 'list'].every((keyword) => !msg.includes(keyword))) {
+    sendMsg(canned.privateHow, channel);
   }
 };

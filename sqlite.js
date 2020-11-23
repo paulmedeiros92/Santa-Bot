@@ -1,4 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
+const moment = require('moment');
 const log4js = require('./logger');
 
 const logger = log4js.buildLogger();
@@ -51,7 +52,7 @@ function createUsersTable() {
 
 function createPresentsTable() {
   logger.info('createPresentsTable: start');
-  const query = 'CREATE TABLE IF NOT EXISTS presents (userId INTEGER NOT NULL, desc TEXT NOT NULL, ranking INTEGER NOT NULL CHECK(ranking <= 5 AND ranking > 0), UNIQUE(userId, ranking))';
+  const query = 'CREATE TABLE IF NOT EXISTS presents (userId INTEGER NOT NULL, desc TEXT NOT NULL, ranking INTEGER NOT NULL, year INTEGER NOT NULL CHECK(ranking <= 5 AND ranking > 0), UNIQUE(userId, ranking))';
   return new Promise((resolve, reject) => {
     db.exec(query, (err) => {
       if (err) {
@@ -66,20 +67,20 @@ function createPresentsTable() {
 }
 
 exports.setPresents = (userId, presents) => {
-  const valuesTxt = presents.map(() => '(?,?,?)').join(', ');
+  const valuesTxt = presents.map(() => '(?,?,?,?)').join(', ');
   let values = [];
   presents.forEach((present) => {
-    values = values.concat([userId, present[0], present[1]]);
+    values = values.concat([userId, present[0], present[1], moment().year()]);
   });
   logger.info('setPresent: start');
-  const updateQuery = `INSERT OR REPLACE INTO presents (userId, desc, ranking) VALUES ${valuesTxt}`;
+  const updateQuery = `INSERT OR REPLACE INTO presents (userId, desc, ranking, year) VALUES ${valuesTxt}`;
   return new Promise((resolve, reject) => {
     db.run(updateQuery, values, (err) => {
       if (err) {
-        logger.error(`updateKarma: ${err.message}`);
+        logger.error(`setPresents: ${err.message}`);
         reject(err);
       } else {
-        logger.info('updateKarma: success');
+        logger.info('setPresents: success');
         resolve();
       }
     });
@@ -88,9 +89,9 @@ exports.setPresents = (userId, presents) => {
 
 exports.getPresents = (id) => {
   logger.info('getPresents: start');
-  const getQuery = 'SELECT desc FROM presents WHERE userId = ? ORDER BY ranking ASC';
+  const getQuery = 'SELECT desc FROM presents WHERE userId = ? AND year = ? ORDER BY ranking ASC';
   return new Promise((resolve, reject) => {
-    db.all(getQuery, [id], (err, rows) => {
+    db.all(getQuery, [id, moment().year()], (err, rows) => {
       if (err) {
         logger.error(`getPresents: ${err.message}`);
         reject(err);

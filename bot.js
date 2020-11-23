@@ -3,6 +3,7 @@ const log4js = require('log4js');
 
 const sqlite = require('./sqlite');
 const msg = require('./message');
+const guildSetup = require('./guild-setup');
 const { dbPath } = require('./constants');
 
 log4js.configure({
@@ -24,6 +25,7 @@ client.on('ready', () => {
   sqlite.openDB(dbPath).then(() => {
     sqlite.buildGuildTables(client.guilds);
   });
+  guildSetup.init(client.guilds);
 });
 
 client.on('message', (receivedMessage) => {
