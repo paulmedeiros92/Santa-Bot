@@ -32,3 +32,7 @@ client.on('message', (receivedMessage) => {
     msg.evaluateMsg(receivedMessage);
   }
 });
+
+client.on('guildMemberAdd', (member) => {
+  guildSetup.init([member.guild]);
+});

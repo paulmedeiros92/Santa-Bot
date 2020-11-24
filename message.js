@@ -2,8 +2,9 @@ const sqlite = require('./sqlite');
 const canned = require('./canned-messages');
 const log4js = require('./logger');
 const { BOTID, BOTID2 } = require('./constants');
+const { buildLeaderboard } = require('./canned-messages');
 
-const logger = log4js.buildLogger;
+const logger = log4js.buildLogger();
 
 function sendMsg(msg, channel) {
   channel.send(msg);
@@ -17,14 +18,20 @@ function addRemoveRole(users, isNice, isNaughty, guild) {
   users.forEach((user) => {
     const memberRoles = guild.members.cache.find((guildMember) => guildMember.id === user.id).roles;
     if (isNice) {
-      memberRoles.add(niceRole);
-      memberRoles.remove([naughtyRole, ninjaRole]);
+      memberRoles.add(niceRole)
+        .then((modifiedMember) => logger.info(`"Nice" role added to: ${modifiedMember.user.username}`));
+      memberRoles.remove([naughtyRole, ninjaRole])
+        .then((modifiedMember) => logger.info(`"Naughty" and "Ninja" roles removed from: ${modifiedMember.user.username}`));
     } else if (isNaughty) {
-      memberRoles.add(naughtyRole);
-      memberRoles.remove([niceRole, ninjaRole]);
+      memberRoles.add(naughtyRole)
+        .then((modifiedMember) => logger.info(`"Naughty" role added to: ${modifiedMember.user.username}`));
+      memberRoles.remove([niceRole, ninjaRole])
+        .then((modifiedMember) => logger.info(`"Nice" and "Ninja" roles removed from: ${modifiedMember.user.username}`));
     } else {
-      memberRoles.add(ninjaRole);
-      memberRoles.remove([niceRole, naughtyRole]);
+      memberRoles.add(ninjaRole)
+        .then((modifiedMember) => logger.info(`"Ninja" role added to: ${modifiedMember.user.username}`));
+      memberRoles.remove([niceRole, naughtyRole])
+        .then((modifiedMember) => logger.info(`"Naughty" and "Nice" roles removed from: ${modifiedMember.user.username}`));
     }
   });
 }
@@ -37,21 +44,27 @@ function nice(karmas) {
   return karmas.map(({ id, username, karma }) => ({ id, username, karma: karma + 1 }));
 }
 
-function list(channel) {
+function presentMessage(channel) {
   sqlite.getAllUsers(channel)
     .then((rows) => {
       // for each row get presents promise all then print message/
       Promise.all(rows.map(({ id }) => sqlite.getPresents(id)))
         .then((presents) => {
-          sendMsg(canned.buildLeaderboard(rows, presents), channel);
+          sendMsg(canned.buildPresents(rows, presents), channel);
         })
         .catch((rejection) => {
           logger.error(rejection);
         });
     })
-    .catch((rejection) => {
-      logger.error(rejection);
-    });
+    .catch((rejection) => logger.error(rejection));
+}
+
+function leaderboardMessage(channel) {
+  sqlite.getAllUsers(channel)
+    .then((users) => {
+      sendMsg(canned.buildLeaderboard(users), channel);
+    })
+    .catch((error) => logger.error(error));
 }
 
 function updateScores(karmas, channel, users, guild) {
@@ -98,9 +111,11 @@ exports.evaluateMsg = ({
         karmas = naughty(karmas);
       } if (msg.includes('nice')) {
         karmas = nice(karmas);
-      } if (msg.includes('list')) {
-        list(channel);
-      } if (['naughty', 'nice', 'list'].every((keyword) => !msg.includes(keyword))) {
+      } if (msg.includes('present') && ['naughty', 'nice'].every((keyword) => !msg.includes(keyword))) {
+        presentMessage(channel);
+      } if (msg.includes('karma') && ['naughty', 'nice'].every((keyword) => !msg.includes(keyword))) {
+        leaderboardMessage(channel);
+      } if (['naughty', 'nice', 'present', 'karma'].every((keyword) => !msg.includes(keyword))) {
         sendMsg(canned.generalHow, channel);
       }
     }
