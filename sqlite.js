@@ -160,7 +160,7 @@ exports.updateKarma = (id, karma) => {
 exports.buildGuildTables = (guilds) => {
   Array.from(guilds.values()).forEach((guild) => {
     createUsersTable().then(() => {
-      Array.from(guild.members.values()).forEach((member) => {
+      guild.members.cache.array().forEach((member) => {
         if (!member.user.bot) {
           setUser(member.id, member.displayName, 0);
         }

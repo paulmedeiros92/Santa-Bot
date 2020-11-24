@@ -1,31 +1,24 @@
 const Discord = require('discord.js');
-const log4js = require('log4js');
+const log4js = require('./logger');
 
-const sqlite = require('./sqlite');
 const msg = require('./message');
 const guildSetup = require('./guild-setup');
-const { dbPath } = require('./constants');
 
-log4js.configure({
-  appenders: {
-    console: { type: 'console' },
-    activity: { type: 'file', filename: 'activity.log', category: 'activity' },
-  },
-  categories: {
-    default: { appenders: ['console', 'activity'], level: 'trace' },
-  },
-});
-const logger = log4js.getLogger('activity');
+const logger = log4js.buildLogger();
 const args = process.argv.slice(2);
 
 const client = new Discord.Client();
 client.login(args[0]);
 
 client.on('ready', () => {
-  sqlite.openDB(dbPath).then(() => {
-    sqlite.buildGuildTables(client.guilds);
-  });
-  guildSetup.init(client.guilds);
+  const guildManager = client.guilds;
+  Promise.all(client.guilds.cache.map((guild) => guildManager.fetch(guild.id)))
+    .then((guilds) => {
+      guildSetup.init(guilds);
+    })
+    .catch((error) => {
+      logger.error(error);
+    });
 });
 
 client.on('message', (receivedMessage) => {
