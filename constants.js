@@ -50,6 +50,27 @@ exports.channels = [
       ],
     },
   },
+  {
+    name: 'Ninja',
+    options: {
+      type: 'text',
+      topic: 'Now you see me....',
+      permissionOverwrites: [
+        {
+          id: 'INSERT_ID',
+          deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+        },
+        {
+          id: 'INSERT_ID',
+          allow: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+        },
+        {
+          id: 'INSERT_ID',
+          allow: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+        },
+      ],
+    },
+  },
 ];
 exports.roles = [
   {
@@ -65,5 +86,12 @@ exports.roles = [
       color: 'GREEN',
     },
     reason: 'Build "Nice" role on startup',
+  },
+  {
+    data: {
+      name: 'Ninja',
+      color: 'GREY',
+    },
+    reason: 'Build "Ninja" role on startup',
   },
 ];

@@ -9,18 +9,22 @@ function sendMsg(msg, channel) {
   channel.send(msg);
 }
 
-function addRemoveRole(users, isNice, isNaughty, roles, guild) {
-  users.forEach(async (user) => {
-    const member = await guild.fetchMember(user);
+function addRemoveRole(users, isNice, isNaughty, guild) {
+  const roles = guild.roles.cache;
+  const naughtyRole = roles.find((role) => role.name === 'Naughty');
+  const niceRole = roles.find((role) => role.name === 'Nice');
+  const ninjaRole = roles.find((role) => role.name === 'Ninja');
+  users.forEach((user) => {
+    const memberRoles = guild.members.cache.find((guildMember) => guildMember.id === user.id).roles;
     if (isNice) {
-      member.addRole(roles.get('Nice'));
-      member.removeRole(roles.get('Naughty'));
+      memberRoles.add(niceRole);
+      memberRoles.remove([naughtyRole, ninjaRole]);
     } else if (isNaughty) {
-      member.addRole(roles.get('Naughty'));
-      member.removeRole(roles.get('Nice'));
+      memberRoles.add(naughtyRole);
+      memberRoles.remove([niceRole, ninjaRole]);
     } else {
-      member.removeRole(roles.get('Nice'));
-      member.removeRole(roles.get('Naughty'));
+      memberRoles.add(ninjaRole);
+      memberRoles.remove([niceRole, naughtyRole]);
     }
   });
 }
@@ -50,10 +54,10 @@ function list(channel) {
     });
 }
 
-function updateScores(karmas, channel, users, roles, guild) {
+function updateScores(karmas, channel, users, guild) {
   karmas.forEach(({ id, username, karma }) => {
     sqlite.updateKarma(id, karma).then(() => {
-      addRemoveRole(users, karma > 0, karma < 0, roles, guild);
+      addRemoveRole(users, karma > 0, karma < 0, guild);
       sendMsg(`Updated ${username}'s karma to ${karma}`, channel);
     });
   });
@@ -78,11 +82,6 @@ function want(userId, content, channel) {
 exports.evaluateMsg = ({
   channel, content, mentions, author, guild,
 }) => {
-  const roles = new Map();
-  guild.roles.forEach((role, id) => {
-    roles.set(role.name, id);
-  });
-
   const msg = content.toLowerCase();
   const { users } = mentions;
   users.delete(BOTID);
@@ -105,7 +104,7 @@ exports.evaluateMsg = ({
         sendMsg(canned.generalHow, channel);
       }
     }
-    updateScores(karmas, channel, users, roles, guild);
+    updateScores(karmas, channel, users, guild);
   });
 };
 
