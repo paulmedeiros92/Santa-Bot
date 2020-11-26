@@ -2,7 +2,6 @@ const sqlite = require('./sqlite');
 const canned = require('./canned-messages');
 const log4js = require('./logger');
 const { BOTID, BOTID2 } = require('./constants');
-const { buildLeaderboard } = require('./canned-messages');
 
 const logger = log4js.buildLogger();
 
@@ -15,23 +14,23 @@ function addRemoveRole(users, isNice, isNaughty, guild) {
   const naughtyRole = roles.find((role) => role.name === 'Naughty');
   const niceRole = roles.find((role) => role.name === 'Nice');
   const ninjaRole = roles.find((role) => role.name === 'Ninja');
-  users.forEach((user) => {
+  users.forEach(async (user) => {
     const memberRoles = guild.members.cache.find((guildMember) => guildMember.id === user.id).roles;
     if (isNice) {
-      memberRoles.add(niceRole)
-        .then((modifiedMember) => logger.info(`"Nice" role added to: ${modifiedMember.user.username}`));
-      memberRoles.remove([naughtyRole, ninjaRole])
-        .then((modifiedMember) => logger.info(`"Naughty" and "Ninja" roles removed from: ${modifiedMember.user.username}`));
+      let modifiedMember = await memberRoles.add(niceRole);
+      logger.info(`"Nice" role added to: ${modifiedMember.user.username}`);
+      modifiedMember = await memberRoles.remove([naughtyRole, ninjaRole]);
+      logger.info(`"Naughty" and "Ninja" roles removed from: ${modifiedMember.user.username}`);
     } else if (isNaughty) {
-      memberRoles.add(naughtyRole)
-        .then((modifiedMember) => logger.info(`"Naughty" role added to: ${modifiedMember.user.username}`));
-      memberRoles.remove([niceRole, ninjaRole])
-        .then((modifiedMember) => logger.info(`"Nice" and "Ninja" roles removed from: ${modifiedMember.user.username}`));
+      let modifiedMember = await memberRoles.add(naughtyRole);
+      logger.info(`"Naughty" role added to: ${modifiedMember.user.username}`);
+      modifiedMember = await memberRoles.remove([niceRole, ninjaRole]);
+      logger.info(`"Nice" and "Ninja" roles removed from: ${modifiedMember.user.username}`);
     } else {
-      memberRoles.add(ninjaRole)
-        .then((modifiedMember) => logger.info(`"Ninja" role added to: ${modifiedMember.user.username}`));
-      memberRoles.remove([niceRole, naughtyRole])
-        .then((modifiedMember) => logger.info(`"Naughty" and "Nice" roles removed from: ${modifiedMember.user.username}`));
+      let modifiedMember = await memberRoles.add(ninjaRole);
+      logger.info(`"Ninja" role added to: ${modifiedMember.user.username}`);
+      modifiedMember = await memberRoles.remove([niceRole, naughtyRole]);
+      logger.info(`"Naughty" and "Nice" roles removed from: ${modifiedMember.user.username}`);
     }
   });
 }

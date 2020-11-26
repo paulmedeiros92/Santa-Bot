@@ -2,10 +2,30 @@ const sqlite = require('./sqlite');
 const log4js = require('./logger');
 
 const {
-  dbPath, channels, roles,
+  dbPath, channels, roles, emojis,
 } = require('./constants');
 
 const logger = log4js.buildLogger();
+
+function createEmojis(guild) {
+  Object.keys(emojis).forEach((roleName) => {
+    const specificRole = guild.roles.cache.find((role) => role.name.toLowerCase() === roleName);
+    if (specificRole) {
+      emojis[roleName].forEach((emojiConfig) => {
+        if (!guild.emojis.cache.find((emoji) => emoji.name.toLowerCase() === emojiConfig.name)) {
+          const options = {
+            roles: [specificRole],
+            reason: 'Emoji creation on bot start up.',
+          };
+          guild.emojis.create(emojiConfig.attachment, emojiConfig.name, options)
+            .catch((error) => logger.error(error));
+        }
+      });
+    } else {
+      logger.error(`Could not find "${roleName}" role`);
+    }
+  });
+}
 
 function createChannels(guild) {
   const createdRoles = guild.roles.cache;
@@ -60,7 +80,10 @@ function createRoles(guild) {
 exports.init = (guilds) => {
   guilds.forEach((guild) => {
     Promise.all(createRoles(guild))
-      .then(() => createChannels(guild))
+      .then(() => {
+        createChannels(guild);
+        createEmojis(guild);
+      })
       .catch((error) => {
         logger.error(error);
       });
