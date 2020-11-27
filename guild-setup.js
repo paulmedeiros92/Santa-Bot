@@ -2,7 +2,7 @@ const sqlite = require('./sqlite');
 const log4js = require('./logger');
 
 const {
-  dbPath, channels, roles, emojis,
+  dbPath, channels, roles, emojis, botRole,
 } = require('./constants');
 
 const logger = log4js.buildLogger();
@@ -43,7 +43,7 @@ function createChannels(guild) {
           (role) => role.name === channelConfig.name,
         ).id;
         channelConfig.options.permissionOverwrites[2].id = createdRoles.find(
-          (role) => role.name === 'Test Bot',
+          (role) => role.name === botRole,
         ).id;
       }
       promises.push(guild.channels.create(channelConfig.name, channelConfig.options));

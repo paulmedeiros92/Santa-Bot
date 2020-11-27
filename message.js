@@ -126,9 +126,7 @@ exports.evaluateDM = ({ author, content, channel }) => {
   const msg = content.toLowerCase();
   if (msg.includes('want')) {
     want(parseInt(author.id, 10), content, channel);
-  } if (msg.includes('list')) {
-    list(channel);
-  } if (['want', 'list'].every((keyword) => !msg.includes(keyword))) {
+  } if (['want'].every((keyword) => !msg.includes(keyword))) {
     sendMsg(canned.privateHow, channel);
   }
 };
