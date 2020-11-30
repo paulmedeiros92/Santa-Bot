@@ -137,7 +137,11 @@ exports.evaluateDM = ({ author, content, channel }) => {
   const msg = content.toLowerCase();
   if (msg.includes('want')) {
     want(parseInt(author.id, 10), content, channel);
-  } if (['want'].every((keyword) => !msg.includes(keyword))) {
+  } else if (msg.includes('present')) {
+    presentMessage(channel);
+  } else if (msg.includes('karma')) {
+    leaderboardMessage(channel);
+  } else {
     sendMsg(canned.privateHow, channel);
   }
 };
