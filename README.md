@@ -9,3 +9,8 @@ Libraries:
   *  discord.js library to interact with discord
   *  sqlite3 library to handle the slq commands
 
+Features:
+  * Wishlist tracking for users
+  * Karma Tracking along with Naughty, Nice, and Ninja roles
+  * Private role specific channels
+  * Custom emoji for each role
