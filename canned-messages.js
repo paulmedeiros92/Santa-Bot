@@ -11,7 +11,7 @@ const canned = {
   privateHow: `Ho! Ho!! Ho!!! Merry X-Mas! What can I help you with?\n
   **want**: ask for a present you want, you only get 5 though
   \t__Description__ ~ [(text description), (ranking 1-5)]
-  \t\tex) \`I want a [Pony, 3] [Gundam, 1]\``,
+  \t\tex) \`I want a [Pony| 3] [Gundam| 1]\``,
   buildLeaderboard: (rows) => {
     let msg = '**LEADERBOARD:**';
 

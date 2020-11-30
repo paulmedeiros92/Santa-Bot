@@ -76,19 +76,30 @@ function updateScores(karmas, channel, users, guild) {
 }
 
 function openPresent(present) {
-  return present.slice(present.indexOf('[') + 1).split(',');
+  const contents = present.slice(present.indexOf('[') + 1).split('|');
+  contents[1] = parseInt(contents[1], 10);
+  return contents;
 }
 
 function want(userId, content, channel) {
-  const presents = content.split(']').filter((raw) => raw.includes('[')).map((present) => openPresent(present));
-  sqlite.setPresents(userId, presents).then(() => {
-    let msg = 'I just saved ';
-    presents.forEach((present) => {
-      msg += `[${present[0]}, ${present[1]}] `;
-    });
-    msg += 'to your list.';
-    sendMsg(msg, channel);
-  });
+  const presents = content.match(/\[[^\|\]]+\|\s*[1-5]\s*\]/g);
+  if (presents !== null) {
+    const presentContents = presents.map((present) => openPresent(present));
+    sqlite.setPresents(userId, presentContents)
+      .then(() => {
+        let msg = 'I just saved ';
+        presentContents.forEach((present) => {
+          msg += `[${present[0]}, ${present[1]}] `;
+        });
+        msg += 'to your list.';
+        sendMsg(msg, channel);
+      })
+      .catch(() => {
+        sendMsg(`Your present could not be saved T__T: ${content}`, channel);
+      });
+  } else {
+    sendMsg('No valid presents were found in your message.', channel);
+  }
 }
 
 exports.evaluateMsg = ({
