@@ -6,15 +6,18 @@ const logger = log4js.buildLogger();
 let db = {};
 
 function allQuery(query, params) {
-  logger.info('allQuery: start');
-  db.all(query, params, (err, rows) => {
-    if (err) {
-      logger.error(`allQuery: ${err.message}`);
-      throw err;
-    }
-    logger.info('allQuery: success');
-    rows.forEach((row) => {
-      logger.info(`allQuery: ${row.name}`);
+  logger.info(`allQuery start: ${params}`);
+  return new Promise((resolve, reject) => {
+    db.all(query, params, (err, rows) => {
+      if (err) {
+        logger.error(`allQuery: ${err.message}`);
+        reject(err);
+      }
+      logger.info(`allQuery success: ${params}`);
+      rows.forEach((row) => {
+        logger.info(`allQuery: ${row.name}`);
+      });
+      resolve();
     });
   });
 }
@@ -36,7 +39,7 @@ exports.openDB = (path) => {
 
 function createUsersTable() {
   logger.info('createUsersTable: start');
-  const query = 'CREATE TABLE IF NOT EXISTS users (id INTEGER NOT NULL, username TEXT NOT NULL, karma INTEGER NOT NULL, UNIQUE(id))';
+  const query = 'CREATE TABLE IF NOT EXISTS users (id TEXT NOT NULL, username TEXT NOT NULL, karma INTEGER NOT NULL, UNIQUE(id))';
   return new Promise((resolve, reject) => {
     db.exec(query, (err) => {
       if (err) {
@@ -105,7 +108,8 @@ exports.getPresents = (id) => {
 
 function setUser(id, username, karma) {
   const query = 'INSERT OR IGNORE INTO users (id, username, karma) VALUES (?,?,?)';
-  allQuery(query, [parseInt(id, 10), username, karma]);
+  const promise = allQuery(query, [id, username, karma]);
+  return promise;
 }
 
 exports.getUsersById = (ids) => {
@@ -158,15 +162,29 @@ exports.updateKarma = (id, karma) => {
 };
 
 exports.buildGuildTables = (guilds) => {
-  Array.from(guilds.values()).forEach((guild) => {
-    createUsersTable().then(() => {
-      guild.members.cache.array().forEach((member) => {
-        if (!member.user.bot) {
-          setUser(member.id, member.displayName, 0);
-        }
-      });
+  return new Promise((resolve, reject) => {
+    Array.from(guilds.values()).forEach((guild) => {
+      createUsersTable()
+        .then(() => {
+          const userPromises = [];
+          guild.members.cache.array().forEach((member) => {
+            if (!member.user.bot) {
+              userPromises.push(setUser(member.id, member.displayName, 0));
+            }
+          });
+          Promise.all(userPromises)
+            .then(() => resolve())
+            .catch((error) => {
+              logger.error(`Could not set a user row: ${error}`);
+              reject();
+            });
+        })
+        .catch((error) => {
+          logger.error(`Could not create users table: ${error}`);
+          reject();
+        });
+      createPresentsTable();
     });
-    createPresentsTable();
   });
 };
 

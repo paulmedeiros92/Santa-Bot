@@ -1,4 +1,5 @@
 const sqlite = require('./sqlite');
+const message = require('./message');
 const log4js = require('./logger');
 
 const {
@@ -77,18 +78,32 @@ function createRoles(guild) {
   return createdRoles;
 }
 
+function evaluateAllUsers(guild) {
+  const memberIds = guild.members.cache.map((member) => member.id);
+  sqlite.getUsersById(memberIds)
+    .then((users) => {
+      message.updateScores(users, users, guild);
+    });
+}
+
 exports.init = (guilds) => {
-  guilds.forEach((guild) => {
-    Promise.all(createRoles(guild))
-      .then(() => {
-        createChannels(guild);
-        createEmojis(guild);
-      })
-      .catch((error) => {
-        logger.error(error);
-      });
-  });
-  sqlite.openDB(dbPath).then(() => {
-    sqlite.buildGuildTables(guilds);
-  });
+  sqlite.openDB(dbPath)
+    .then(() => {
+      sqlite.buildGuildTables(guilds)
+        .then(() => {
+          guilds.forEach((guild) => {
+            Promise.all(createRoles(guild))
+              .then(() => {
+                createChannels(guild);
+                createEmojis(guild);
+                evaluateAllUsers(guild);
+              })
+              .catch((error) => {
+                logger.error(`Roles could not be create: ${error}`);
+              });
+          });
+        })
+        .catch((error) => logger.error(`Tables could not be built onInit: ${error}`));
+    })
+    .catch((error) => logger.error(`Database could not be open: ${error}`));
 };

@@ -9,30 +9,28 @@ function sendMsg(msg, channel) {
   channel.send(msg);
 }
 
-function addRemoveRole(users, isNice, isNaughty, guild) {
+async function addRemoveRole(userId, isNice, isNaughty, guild) {
   const roles = guild.roles.cache;
   const naughtyRole = roles.find((role) => role.name === 'Naughty');
   const niceRole = roles.find((role) => role.name === 'Nice');
   const ninjaRole = roles.find((role) => role.name === 'Ninja');
-  users.forEach(async (user) => {
-    const memberRoles = guild.members.cache.find((guildMember) => guildMember.id === user.id).roles;
-    if (isNice) {
-      let modifiedMember = await memberRoles.add(niceRole);
-      logger.info(`"Nice" role added to: ${modifiedMember.user.username}`);
-      modifiedMember = await memberRoles.remove([naughtyRole, ninjaRole]);
-      logger.info(`"Naughty" and "Ninja" roles removed from: ${modifiedMember.user.username}`);
-    } else if (isNaughty) {
-      let modifiedMember = await memberRoles.add(naughtyRole);
-      logger.info(`"Naughty" role added to: ${modifiedMember.user.username}`);
-      modifiedMember = await memberRoles.remove([niceRole, ninjaRole]);
-      logger.info(`"Nice" and "Ninja" roles removed from: ${modifiedMember.user.username}`);
-    } else {
-      let modifiedMember = await memberRoles.add(ninjaRole);
-      logger.info(`"Ninja" role added to: ${modifiedMember.user.username}`);
-      modifiedMember = await memberRoles.remove([niceRole, naughtyRole]);
-      logger.info(`"Naughty" and "Nice" roles removed from: ${modifiedMember.user.username}`);
-    }
-  });
+  const memberRoles = guild.members.cache.find((guildMember) => guildMember.id === userId).roles;
+  if (isNice) {
+    let modifiedMember = await memberRoles.add(niceRole);
+    logger.info(`"Nice" role added to: ${modifiedMember.user.username}`);
+    modifiedMember = await memberRoles.remove([naughtyRole, ninjaRole]);
+    logger.info(`"Naughty" and "Ninja" roles removed from: ${modifiedMember.user.username}`);
+  } else if (isNaughty) {
+    let modifiedMember = await memberRoles.add(naughtyRole);
+    logger.info(`"Naughty" role added to: ${modifiedMember.user.username}`);
+    modifiedMember = await memberRoles.remove([niceRole, ninjaRole]);
+    logger.info(`"Nice" and "Ninja" roles removed from: ${modifiedMember.user.username}`);
+  } else {
+    let modifiedMember = await memberRoles.add(ninjaRole);
+    logger.info(`"Ninja" role added to: ${modifiedMember.user.username}`);
+    modifiedMember = await memberRoles.remove([niceRole, naughtyRole]);
+    logger.info(`"Naughty" and "Nice" roles removed from: ${modifiedMember.user.username}`);
+  }
 }
 
 function naughty(karmas) {
@@ -66,14 +64,16 @@ function leaderboardMessage(channel) {
     .catch((error) => logger.error(error));
 }
 
-function updateScores(karmas, channel, users, guild) {
+exports.updateScores = (karmas, users, guild, channel) => {
   karmas.forEach(({ id, username, karma }) => {
     sqlite.updateKarma(id, karma).then(() => {
-      addRemoveRole(users, karma > 0, karma < 0, guild);
-      sendMsg(`Updated ${username}'s karma to ${karma}`, channel);
+      addRemoveRole(id, karma > 0, karma < 0, guild);
+      if (channel != null) {
+        sendMsg(`Updated ${username}'s karma to ${karma}`, channel);
+      }
     });
   });
-}
+};
 
 function openPresent(present) {
   const contents = present.slice(present.indexOf('[') + 1).split('|');
@@ -109,13 +109,13 @@ exports.evaluateMsg = ({
   const { users } = mentions;
   users.delete(BOTID);
   users.delete(BOTID2);
-  const userIds = Array.from(users.values()).map((user) => parseInt(user.id, 10));
+  const userIds = Array.from(users.values()).map((user) => user.id);
 
   // TODO: functionality to prevent collisions between how and the usage of other commands
   sqlite.getUsersById(userIds).then((scores) => {
     let karmas = scores;
     if (users.has(author.id)) {
-      karmas = naughty(karmas, [parseInt(author.id, 10)]);
+      karmas = naughty(karmas, [author.id]);
     } else {
       if (msg.includes('naughty')) {
         karmas = naughty(karmas);
@@ -129,7 +129,7 @@ exports.evaluateMsg = ({
         sendMsg(canned.generalHow, channel);
       }
     }
-    updateScores(karmas, channel, users, guild);
+    this.updateScores(karmas, users, guild, channel);
   });
 };
 
