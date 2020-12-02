@@ -126,7 +126,7 @@ exports.evaluateMsg = ({
       } if (msg.includes('karma') && ['naughty', 'nice'].every((keyword) => !msg.includes(keyword))) {
         leaderboardMessage(channel);
       } if (['naughty', 'nice', 'present', 'karma'].every((keyword) => !msg.includes(keyword))) {
-        sendMsg(canned.generalHow, channel);
+        sendMsg(canned.generalHow(), channel);
       }
     }
     this.updateScores(karmas, users, guild, channel);
@@ -142,6 +142,6 @@ exports.evaluateDM = ({ author, content, channel }) => {
   } else if (msg.includes('karma')) {
     leaderboardMessage(channel);
   } else {
-    sendMsg(canned.privateHow, channel);
+    sendMsg(canned.privateHow(), channel);
   }
 };
