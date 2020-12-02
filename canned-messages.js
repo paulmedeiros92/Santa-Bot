@@ -1,3 +1,5 @@
+const Discord = require('discord.js');
+
 const canned = {
   generalHow: `Ho! Ho!! Ho!!! Merry X-Mas! What can I help you with?\n
   **naughty**: Mention someone you feel is naughty.
@@ -17,23 +19,23 @@ const canned = {
   **present**: Mention Santa Bot and the word present to see everyone's wish list.
   \t\tex) \`@Santa Claus what presents are you tracking?\``,
   buildLeaderboard: (rows) => {
-    let msg = '**LEADERBOARD:**';
+    const embedMsg = new Discord.MessageEmbed()
+      .setColor('#02731e')
+      .setTitle('LEADERBOARD')
+      .attachFiles(['Embed Images/tree.png', 'Embed Images/garland.png'])
+      .setThumbnail('attachment://tree.png')
+      .setImage('attachment://garland.png');
 
     for (let i = 0; i < rows.length; i += 1) {
-      if (i === 0) {
-        msg += `\`\`\`diff\n+1 ${rows[i].username}: ${rows[i].karma} karma\n\`\`\``;
-      } else if (i === 1) {
-        msg += `\`\`\`glsl\n#2 ${rows[i].username}: ${rows[i].karma} karma\n\`\`\``;
-      } else if (i === 2) {
-        msg += `\`\`\`diff\n-3 ${rows[i].username}: ${rows[i].karma} karma\n\`\`\``;
-      } else if (i === 3) {
-        msg += `\`\`\`#4 ${rows[i].username}: ${rows[i].karma} karma\n`;
+      const position = i + 1;
+      if (position === 1) {
+        embedMsg.addField(`#${position} ${rows[i].username}`, `${rows[i].karma} karma`, false);
       } else {
-        msg += `#${i + 1} ${rows[i].username}: ${rows[i].karma} karma\n`;
+        embedMsg.addField(`#${position} ${rows[i].username}`, `${rows[i].karma} karma`, true);
       }
     }
-    msg += '```';
-    return msg;
+
+    return embedMsg;
   },
   buildPresents: (users, presents) => {
     let msg = '**SANTA BOT\'S LIST:**\n\n';
