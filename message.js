@@ -136,7 +136,7 @@ exports.evaluateMsg = ({
 exports.evaluateDM = ({ author, content, channel }) => {
   const msg = content.toLowerCase();
   if (msg.includes('want')) {
-    want(parseInt(author.id, 10), content, channel);
+    want(author.id, content, channel);
   } else if (msg.includes('present')) {
     presentMessage(channel);
   } else if (msg.includes('karma')) {
