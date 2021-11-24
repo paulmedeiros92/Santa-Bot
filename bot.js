@@ -1,38 +1,27 @@
-const Discord = require('discord.js');
-const log4js = require('./logger');
+const fs = require('fs');
+const { Client, Collection, Intents } = require('discord.js');
+const { discord } = require('./config.json');
 
-const msg = require('./message');
-const guildSetup = require('./guild-setup');
+// Create a new client instance
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
-const logger = log4js.buildLogger();
-const args = process.argv.slice(2);
-
-const client = new Discord.Client();
-client.login(args[0]);
-
-client.on('ready', () => {
-  const guildManager = client.guilds;
-  Promise.all(client.guilds.cache.map((guild) => guildManager.fetch(guild.id)))
-    .then((guilds) => {
-      guildSetup.init(guilds);
-    })
-    .catch((error) => {
-      logger.error(error);
-    });
+// Attach commands to client, so I can access the commands from other contexts
+client.commands = new Collection();
+const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
+commandFiles.forEach((file) => {
+  const command = require(`./commands/${file}`)
+  client.commands.set(command.data.name, command);
 });
 
-client.on('message', (receivedMessage) => {
-  if (receivedMessage.author !== client.user && receivedMessage.channel.type === 'dm') {
-    logger.info(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}, message: "${receivedMessage.content}"`);
-    msg.evaluateDM(receivedMessage);
-  } else if (receivedMessage.author !== client.user
-    && (receivedMessage.content.includes(client.user.id) || ['naughty', 'nice'].some((keyword) => receivedMessage.content.includes(keyword)))
-  ) {
-    logger.info(`This is ${receivedMessage.author.username}'s id: ${receivedMessage.author.id}, message: "${receivedMessage.content}"`);
-    msg.evaluateMsg(receivedMessage);
+const eventFiles = fs.readdirSync('./events').filter((file) => file.endsWith('.js'));
+eventFiles.forEach((file) => {
+  const event = require(`./events/${file}`);
+  if (event.once) {
+    client.once(event.name, (...args) => event.execute(...args));
+  } else {
+    client.on(event.name, (...args) => event.execute(...args));
   }
 });
 
-client.on('guildMemberAdd', (member) => {
-  guildSetup.init([member.guild]);
-});
+// Login to Discord with your client's token
+client.login(discord.token);

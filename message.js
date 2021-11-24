@@ -1,6 +1,7 @@
 const sqlite = require('./sqlite');
 const canned = require('./canned-messages');
 const log4js = require('./logger');
+const firestore = require('./fire-store');
 const { BOTID, BOTID2 } = require('./constants');
 
 const logger = log4js.buildLogger();
@@ -112,8 +113,8 @@ exports.evaluateMsg = ({
   const userIds = Array.from(users.values()).map((user) => user.id);
 
   // TODO: functionality to prevent collisions between how and the usage of other commands
-  sqlite.getUsersById(userIds).then((scores) => {
-    let karmas = scores;
+  firestore.getMembers(guild.id, userIds).then((members) => {
+    let karmas = members;
     if (users.has(author.id)) {
       karmas = naughty(karmas, [author.id]);
     } else {

@@ -161,32 +161,30 @@ exports.updateKarma = (id, karma) => {
   });
 };
 
-exports.buildGuildTables = (guilds) => {
-  return new Promise((resolve, reject) => {
-    Array.from(guilds.values()).forEach((guild) => {
-      createUsersTable()
-        .then(() => {
-          const userPromises = [];
-          guild.members.cache.array().forEach((member) => {
-            if (!member.user.bot) {
-              userPromises.push(setUser(member.id, member.displayName, 0));
-            }
-          });
-          Promise.all(userPromises)
-            .then(() => resolve())
-            .catch((error) => {
-              logger.error(`Could not set a user row: ${error}`);
-              reject();
-            });
-        })
-        .catch((error) => {
-          logger.error(`Could not create users table: ${error}`);
-          reject();
+exports.buildGuildTables = (guilds) => new Promise((resolve, reject) => {
+  Array.from(guilds.values()).forEach((guild) => {
+    createUsersTable()
+      .then(() => {
+        const userPromises = [];
+        guild.members.cache.array().forEach((member) => {
+          if (!member.user.bot) {
+            userPromises.push(setUser(member.id, member.displayName, 0));
+          }
         });
-      createPresentsTable();
-    });
+        Promise.all(userPromises)
+          .then(() => resolve())
+          .catch((error) => {
+            logger.error(`Could not set a user row: ${error}`);
+            reject();
+          });
+      })
+      .catch((error) => {
+        logger.error(`Could not create users table: ${error}`);
+        reject();
+      });
+    createPresentsTable();
   });
-};
+});
 
 exports.closeDB = () => {
   logger.info('closeDB: start');
