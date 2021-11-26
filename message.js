@@ -1,7 +1,7 @@
 const sqlite = require('./sqlite');
 const canned = require('./canned-messages');
 const log4js = require('./logger');
-const firestore = require('./fire-store');
+const { getMembers, updateMembers } = require('./fire-store');
 const { BOTID, BOTID2 } = require('./constants');
 
 const logger = log4js.buildLogger();
@@ -32,14 +32,6 @@ async function addRemoveRole(userId, isNice, isNaughty, guild) {
     modifiedMember = await memberRoles.remove([niceRole, naughtyRole]);
     logger.info(`"Naughty" and "Nice" roles removed from: ${modifiedMember.user.username}`);
   }
-}
-
-function naughty(karmas) {
-  return karmas.map(({ id, username, karma }) => ({ id, username, karma: karma - 1 }));
-}
-
-function nice(karmas) {
-  return karmas.map(({ id, username, karma }) => ({ id, username, karma: karma + 1 }));
 }
 
 function presentMessage(channel) {
@@ -113,7 +105,7 @@ exports.evaluateMsg = ({
   const userIds = Array.from(users.values()).map((user) => user.id);
 
   // TODO: functionality to prevent collisions between how and the usage of other commands
-  firestore.getMembers(guild.id, userIds).then((members) => {
+  getMembers(guild.id, userIds).then((members) => {
     let karmas = members;
     if (users.has(author.id)) {
       karmas = naughty(karmas, [author.id]);
@@ -132,6 +124,48 @@ exports.evaluateMsg = ({
     }
     this.updateScores(karmas, users, guild, channel);
   });
+};
+
+function modifyKarma(members, delta) {
+  return members.map(({ id, username, karma }) => {
+    if (karma) {
+      return { id, username, karma: karma + delta };
+    }
+    return { id, username, karma: delta };
+  });
+}
+
+function naughty(members) {
+  return members.map(({ id, username, karma }) => ({ id, username, karma: karma - 1 }));
+}
+
+function nice(members) {
+  return members.map(({ id, username, karma }) => ({ id, username, karma: karma + 1 }));
+}
+
+function cleanMentions(senderId, mentions) {
+  return mentions.users.filter((user) => !user.bot && user.id !== senderId);
+}
+
+exports.parseKarmaMessage = async (message) => {
+  const content = message.content.toLowerCase();
+  if (!(content.includes('naughty') || content.includes('nice'))) {
+    return [];
+  }
+
+  const mentions = cleanMentions(message.author.id, message.mentions);
+  let members = await getMembers(message.guildId, mentions);
+  if (content.includes('naughty')) {
+    members = modifyKarma(members, -1);
+  } if (content.includes('nice')) {
+    members = modifyKarma(members, 1);
+  }
+  // work on this
+  members.forEach(
+    (member) => addRemoveRole(member.id, member.karma > 0, member.karma < 0, message.guild),
+  );
+  await updateMembers(message.guildId, members);
+  return members;
 };
 
 exports.evaluateDM = ({ author, content, channel }) => {

@@ -2,6 +2,7 @@
 A fun Christmas karma bot for Discord in Node.js
 
 Requirements:
+THIS NEEDS TO BE UPDATED
   *  A Sqlite database, that the bot will initialize when it makes a connection to the correct database path
   *  A Discord authorization token passed in as the first node argument
 

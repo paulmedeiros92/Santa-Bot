@@ -1,21 +1,17 @@
+const { addMember } = require('../fire-store');
 const log4js = require('../logger');
+
 const logger = log4js.buildLogger();
 
 module.exports = {
   name: 'guildMemberAdd',
   once: false,
-  async execute(interaction) {
-    if (!interaction.isCommand()) return;
-
-    const command = interaction.client.commands.get(interaction.commandName);
-
-    if (!command) return;
-
+  async execute(guildMember) {
     try {
-      await command.execute(interaction);
+      await addMember(guildMember.guild.id, guildMember.user);
+      logger.info(`Successfully added ${guildMember.user.username} to "${guildMember.guild.name}" (${guildMember.guild.id}) members list`);
     } catch (error) {
-      logger.error(`Command execution failure: ${error}`);
-      await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+      logger.error(`Failed to add ${guildMember.user.username} to "${guildMember.guild.name}" (${guildMember.guild.id}) members list: ${error}`);
     }
   },
 };

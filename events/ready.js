@@ -1,5 +1,6 @@
 const fireStore = require('../fire-store');
 const log4js = require('../logger');
+
 const logger = log4js.buildLogger();
 
 module.exports = {
