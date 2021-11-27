@@ -7,14 +7,14 @@ const { firebase } = require('./config.json');
 const app = initializeApp(firebase);
 const db = getFirestore(app);
 
-//change this to batch write
 async function addMembers(guild) {
+  const batch = writeBatch(db);
   const members = await guild.members.fetch();
   members.filter((member) => !member.user.bot).each((member) => {
     const memberRef = doc(db, 'guilds', guild.id, 'members', member.user.id);
-    setDoc(memberRef, { username: member.user.username, id: member.user.id }, { merge: true })
-      .catch(() => console.log('failed to set user'));
+    batch.set(memberRef, { username: member.user.username, id: member.user.id }, { merge: true });
   });
+  batch.commit();
 }
 
 exports.addMember = (guildId, user) => {
@@ -35,7 +35,7 @@ exports.buildUserBase = (client) => new Promise((resolve, reject) => {
 
 exports.getMembers = async (guildId, memberIds) => {
   const membersRef = collection(db, 'guilds', guildId, 'members');
-  const q = query(membersRef, where('id', 'in', Array.from(memberIds.keys())));
+  const q = query(membersRef, where('id', 'in', memberIds));
   return (await getDocs(q)).docs.map((document) => document.data());
 };
 

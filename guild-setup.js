@@ -1,10 +1,11 @@
 const sqlite = require('./sqlite');
-const message = require('./message');
+const { addRemoveRole } = require('./message');
 const log4js = require('./logger');
 
 const {
   dbPath, channels, roles, emojis, botRole,
 } = require('./constants');
+const { getMembers } = require('./fire-store');
 
 const logger = log4js.buildLogger();
 
@@ -78,13 +79,16 @@ function createRoles(guild) {
   return createdRoles;
 }
 
-function evaluateAllUsers(guild) {
-  const memberIds = guild.members.cache.map((member) => member.id);
-  sqlite.getUsersById(memberIds)
-    .then((users) => {
-      message.updateScores(users, users, guild);
-    });
-}
+exports.evaluateAllUserRoles = async (guild) => {
+  const userIds = (await guild.members.fetch())
+    .filter((member) => !member.user.bot)
+    .map((member) => member.user.id);
+  const members = await getMembers(guild.id, userIds);
+  for (let i = 0; i < members.length; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    await addRemoveRole(members[i].id, guild, members[i].karma);
+  }
+};
 
 exports.init = (guilds) => {
   sqlite.openDB(dbPath)
@@ -96,7 +100,6 @@ exports.init = (guilds) => {
               .then(() => {
                 createChannels(guild);
                 createEmojis(guild);
-                evaluateAllUsers(guild);
               })
               .catch((error) => {
                 logger.error(`Roles could not be create: ${error}`);
