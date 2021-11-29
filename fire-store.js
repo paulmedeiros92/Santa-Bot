@@ -17,6 +17,11 @@ async function addMembers(guild) {
   batch.commit();
 }
 
+exports.addPresent = (guildId, present) => {
+  const memberRef = doc(db, 'guilds', guildId, 'presents', present.userId + present.rank);
+  return setDoc(memberRef, present, { merge: true });
+};
+
 exports.addMember = (guildId, user) => {
   const memberRef = doc(db, 'guilds', guildId, 'members', user.id);
   return setDoc(memberRef, { username: user.username, id: user.id }, { merge: true });
