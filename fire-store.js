@@ -22,6 +22,12 @@ exports.addPresent = (guildId, present) => {
   return setDoc(memberRef, present, { merge: true });
 };
 
+exports.getUserPresents = async (guildId, userId) => {
+  const membersRef = collection(db, 'guilds', guildId, 'presents');
+  const q = query(membersRef, where('userId', '==', userId));
+  return (await getDocs(q)).docs.map((document) => document.data());
+};
+
 exports.addMember = (guildId, user) => {
   const memberRef = doc(db, 'guilds', guildId, 'members', user.id);
   return setDoc(memberRef, { username: user.username, id: user.id }, { merge: true });
