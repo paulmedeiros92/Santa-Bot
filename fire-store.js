@@ -36,7 +36,13 @@ exports.buildUserBase = (client) => new Promise((resolve, reject) => {
 exports.getMembers = async (guildId, memberIds) => {
   const membersRef = collection(db, 'guilds', guildId, 'members');
   const q = query(membersRef, where('id', 'in', memberIds));
-  return (await getDocs(q)).docs.map((document) => document.data());
+  return (await getDocs(q)).docs.map((document) => {
+    const member = document.data();
+    if (member.karma === undefined) {
+      member.karma = 0;
+    }
+    return member;
+  });
 };
 
 exports.updateMembers = async (guildId, members) => {
