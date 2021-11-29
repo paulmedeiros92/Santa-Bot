@@ -15,10 +15,15 @@ module.exports = {
     const rank = interaction.options.getInteger('rank');
     const description = interaction.options.getString('description');
     try {
-      await addPresent(interaction.guildId, { userId: interaction.user.id, rank, description });
+      await addPresent(
+        interaction.guildId,
+        {
+          userId: interaction.user.id, username: interaction.user.username, rank, description,
+        },
+      );
       const message = buildUserPresentList(
-        interaction.user.username,
         await getUserPresents(interaction.guildId, interaction.user.id),
+        interaction.user.username,
         { description, rank },
       );
       message.ephemeral = true;

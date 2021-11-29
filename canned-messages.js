@@ -21,7 +21,7 @@ exports.buildLeaderboard = (rows) => {
   return { embeds: [embedMsg], files: [treeFile, garlandFile] };
 };
 
-exports.buildUserPresentList = (username, presents, present = false) => {
+exports.buildUserPresentList = (presents, username, present = false) => {
   const treeFile = new Discord.MessageAttachment('Embed Images/tree.png');
   const garlandFile = new Discord.MessageAttachment('Embed Images/garland.png');
   const embedMsg = new Discord.MessageEmbed()
@@ -42,23 +42,33 @@ exports.buildUserPresentList = (username, presents, present = false) => {
   return { embeds: [embedMsg], files: [treeFile, garlandFile] };
 };
 
-exports.buildPresents = (users, presents) => {
+exports.buildSantasPresentList = (presents) => {
+  const treeFile = new Discord.MessageAttachment('Embed Images/tree.png');
+  const garlandFile = new Discord.MessageAttachment('Embed Images/garland.png');
   const embedMsg = new Discord.MessageEmbed()
     .setColor('#02731e')
-    .setTitle('SANTA\S LIST')
-    .attachFiles(['Embed Images/tree.png', 'Embed Images/garland.png'])
+    .setTitle('Santa\'s List')
     .setThumbnail('attachment://tree.png')
     .setImage('attachment://garland.png');
 
-  users.forEach((user, i) => {
+  const users = new Map();
+  presents.forEach((present) => {
+    const oldPresents = users.get(present.username);
+    if (oldPresents) {
+      users.set(present.username, [present, ...users.get(present.username)]);
+    } else {
+      users.set(present.username, [present]);
+    }
+  });
+  users.forEach((listItems, username) => {
     let content = '';
-    if (presents[i].length > 0) {
-      content += presents[i].map((present) => `"${present.desc}"`).join(', ');
+    if (listItems.length > 0) {
+      content += listItems.map((present) => `"${present.description}"`).join(', ');
     } else {
       content += ' doesn\'t believe in Santa Bot.';
     }
-    embedMsg.addField(`${user.username}'s list:`, content, false);
+    embedMsg.addField(`${username}'s list:`, content, false);
   });
 
-  return embedMsg;
+  return { embeds: [embedMsg], files: [treeFile, garlandFile] };
 };
