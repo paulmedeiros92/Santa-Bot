@@ -2,7 +2,7 @@ const { initializeApp } = require('firebase/app');
 const {
   getFirestore, doc, setDoc, query, where, collection, getDocs, writeBatch,
 } = require('firebase/firestore/lite');
-const { firebase } = require('./config.json');
+const { firebase } = require('../config.json');
 
 const app = initializeApp(firebase);
 const db = getFirestore(app);

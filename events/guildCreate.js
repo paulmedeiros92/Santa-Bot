@@ -1,4 +1,4 @@
-const { buildUserBase } = require('../fire-store');
+const { buildUserBase } = require('../services/firestore-service');
 const log4js = require('../logger');
 const { createRoles, createEmojis, evaluateAllUserRoles } = require('../services/ready-service');
 

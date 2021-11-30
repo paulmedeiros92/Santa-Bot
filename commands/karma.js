@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { buildLeaderboard } = require('../canned-messages');
-const { getMembers } = require('../fire-store');
+const { buildLeaderboard } = require('../services/reply-service');
+const { getMembers } = require('../services/firestore-service');
 const log4js = require('../logger');
 
 const logger = log4js.buildLogger();

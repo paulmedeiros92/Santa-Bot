@@ -36,7 +36,7 @@ exports.buildUserPresentList = (presents, username, present = false) => {
     embedMsg.addField('Doesn\'t believe in Santa');
   } else {
     presents.forEach(({ rank, description }) => {
-      embedMsg.addField(`#${rank}`, description, false);
+      embedMsg.addField(`#${rank}`, description, true);
     });
   }
   return { embeds: [embedMsg], files: [treeFile, garlandFile] };
@@ -64,7 +64,7 @@ exports.buildSantasPresentList = (presents) => {
     let content = '';
     listItems.sort((presentA, presentB) => presentA.rank - presentB.rank);
     if (listItems.length > 0) {
-      content += listItems.map((present) => `"${present.description}"`).join(', ');
+      content += listItems.map((present) => `#${present.rank} ${present.description}`).join('\n');
     } else {
       content += ' doesn\'t believe in Santa Bot.';
     }

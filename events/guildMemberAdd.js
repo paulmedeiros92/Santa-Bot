@@ -1,4 +1,4 @@
-const { addMember } = require('../fire-store');
+const { addMember } = require('../services/firestore-service');
 const log4js = require('../logger');
 
 const logger = log4js.buildLogger();

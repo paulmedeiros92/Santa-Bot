@@ -1,7 +1,16 @@
 const log4js = require('../logger');
-const { getMembers, updateMembers } = require('../fire-store');
+const { getMembers, updateMembers } = require('./firestore-service');
 
 const logger = log4js.buildLogger();
+
+function modifyKarma(members, delta) {
+  return members.map(({ id, username, karma }) => {
+    if (karma) {
+      return { id, username, karma: karma + delta };
+    }
+    return { id, username, karma: delta };
+  });
+}
 
 exports.addRemoveRole = async (userId, guild, karma = 0) => {
   const roles = guild.roles.cache.filter((role) => ['Naughty', 'Nice', 'Ninja'].includes(role.name));
@@ -20,15 +29,6 @@ exports.addRemoveRole = async (userId, guild, karma = 0) => {
   modifiedMember = await memberRoles.remove(rolesToRemove);
   logger.info(`${rolesToRemove.map((role) => role.name).join(' and ')} roles removed from: ${modifiedMember.user.username}`);
 };
-
-function modifyKarma(members, delta) {
-  return members.map(({ id, username, karma }) => {
-    if (karma) {
-      return { id, username, karma: karma + delta };
-    }
-    return { id, username, karma: delta };
-  });
-}
 
 exports.parseKarmaMessage = async (message) => {
   const content = message.content.toLowerCase();

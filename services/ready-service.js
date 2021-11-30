@@ -4,7 +4,7 @@ const log4js = require('../logger');
 const {
   roles, emojis,
 } = require('../constants');
-const { getMembers } = require('../fire-store');
+const { getMembers } = require('./firestore-service');
 
 const logger = log4js.buildLogger();
 
