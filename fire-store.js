@@ -33,16 +33,10 @@ exports.addMember = (guildId, user) => {
   return setDoc(memberRef, { username: user.username, id: user.id }, { merge: true });
 };
 
-exports.buildUserBase = (client) => new Promise((resolve, reject) => {
-  client.guilds.cache.each((guild) => {
-    setDoc(doc(db, 'guilds', guild.id), { guildId: guild.id, guildName: guild.name })
-      .then(() => {
-        addMembers(guild);
-        resolve();
-      })
-      .catch(() => reject());
-  });
-});
+exports.buildUserBase = async (guild) => {
+  await setDoc(doc(db, 'guilds', guild.id), { guildId: guild.id, guildName: guild.name });
+  return addMembers(guild);
+};
 
 exports.getMembers = async (guildId, memberIds) => {
   const membersRef = collection(db, 'guilds', guildId, 'members');

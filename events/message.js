@@ -1,4 +1,4 @@
-const { parseKarmaMessage } = require('../message');
+const { parseKarmaMessage } = require('../services/message-service');
 const log4js = require('../logger');
 
 const logger = log4js.buildLogger();

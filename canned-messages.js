@@ -62,6 +62,7 @@ exports.buildSantasPresentList = (presents) => {
   });
   users.forEach((listItems, username) => {
     let content = '';
+    listItems.sort((presentA, presentB) => presentA.rank - presentB.rank);
     if (listItems.length > 0) {
       content += listItems.map((present) => `"${present.description}"`).join(', ');
     } else {

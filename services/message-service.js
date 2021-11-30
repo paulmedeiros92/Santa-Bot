@@ -1,5 +1,5 @@
-const log4js = require('./logger');
-const { getMembers, updateMembers } = require('./fire-store');
+const log4js = require('../logger');
+const { getMembers, updateMembers } = require('../fire-store');
 
 const logger = log4js.buildLogger();
 
@@ -30,17 +30,14 @@ function modifyKarma(members, delta) {
   });
 }
 
-function cleanMentions(senderId, mentions) {
-  return mentions.users.filter((user) => !user.bot && user.id !== senderId);
-}
-
 exports.parseKarmaMessage = async (message) => {
   const content = message.content.toLowerCase();
   if (!(content.includes('naughty') || content.includes('nice'))) {
     return [];
   }
 
-  const mentions = cleanMentions(message.author.id, message.mentions);
+  const mentions = message.mentions.users
+    .filter((user) => !user.bot && user.id !== message.author.id);
   let members = await getMembers(message.guildId, Array.from(mentions.keys()));
   if (content.includes('naughty')) {
     members = modifyKarma(members, -1);
