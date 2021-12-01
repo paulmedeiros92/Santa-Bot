@@ -38,9 +38,9 @@ exports.buildUserBase = async (guild) => {
   return addMembers(guild);
 };
 
-exports.getMembers = async (guildId, memberIds) => {
+exports.getMembers = async (guildId, memberIds = []) => {
   const membersRef = collection(db, 'guilds', guildId, 'members');
-  const q = query(membersRef, where('id', 'in', memberIds));
+  const q = memberIds.length > 0 ? query(membersRef, where('id', 'in', memberIds)) : membersRef;
   return (await getDocs(q)).docs.map((document) => {
     const member = document.data();
     if (member.karma === undefined) {

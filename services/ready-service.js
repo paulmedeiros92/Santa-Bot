@@ -39,10 +39,7 @@ exports.createRoles = (guild) => {
 };
 
 exports.evaluateAllUserRoles = async (guild) => {
-  const userIds = (await guild.members.fetch())
-    .filter((member) => !member.user.bot)
-    .map((member) => member.user.id);
-  const members = await getMembers(guild.id, userIds);
+  const members = await getMembers(guild.id);
   for (let i = 0; i < members.length; i += 1) {
     // eslint-disable-next-line no-await-in-loop
     await addRemoveRole(members[i].id, guild, members[i].karma);
