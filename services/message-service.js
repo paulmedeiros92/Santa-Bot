@@ -1,5 +1,5 @@
-const log4js = require('../logger');
-const { getMembers, updateMembers } = require('./firestore-service');
+const log4js = require("../logger");
+const { getMembers, updateMembers } = require("./api-service");
 
 const logger = log4js.buildLogger();
 
@@ -13,35 +13,47 @@ function modifyKarma(members, delta) {
 }
 
 exports.addRemoveRole = async (userId, guild, karma = 0) => {
-  const roles = guild.roles.cache.filter((role) => ['Naughty', 'Nice', 'Ninja'].includes(role.name));
-  const memberRoles = guild.members.cache.find((guildMember) => guildMember.id === userId).roles;
+  const roles = guild.roles.cache.filter((role) =>
+    ["Naughty", "Nice", "Ninja"].includes(role.name)
+  );
+  const memberRoles = guild.members.cache.find(
+    (guildMember) => guildMember.id === userId
+  ).roles;
   let currentRole;
   if (karma > 0) {
-    currentRole = roles.find((role) => role.name === 'Nice');
+    currentRole = roles.find((role) => role.name === "Nice");
   } else if (karma < 0) {
-    currentRole = roles.find((role) => role.name === 'Naughty');
+    currentRole = roles.find((role) => role.name === "Naughty");
   } else {
-    currentRole = roles.find((role) => role.name === 'Ninja');
+    currentRole = roles.find((role) => role.name === "Ninja");
   }
   let modifiedMember = await memberRoles.add(currentRole);
-  logger.info(`${currentRole.name} role added to: ${modifiedMember.user.username}`);
+  logger.info(
+    `${currentRole.name} role added to: ${modifiedMember.user.username}`
+  );
   const rolesToRemove = roles.filter((role) => role.name !== currentRole.name);
   modifiedMember = await memberRoles.remove(rolesToRemove);
-  logger.info(`${rolesToRemove.map((role) => role.name).join(' and ')} roles removed from: ${modifiedMember.user.username}`);
+  logger.info(
+    `${rolesToRemove
+      .map((role) => role.name)
+      .join(" and ")} roles removed from: ${modifiedMember.user.username}`
+  );
 };
 
 exports.parseKarmaMessage = async (message) => {
   const content = message.content.toLowerCase();
-  if (!(content.includes('naughty') || content.includes('nice'))) {
+  if (!(content.includes("naughty") || content.includes("nice"))) {
     return [];
   }
 
-  const mentions = message.mentions.users
-    .filter((user) => !user.bot && user.id !== message.author.id);
+  const mentions = message.mentions.users.filter(
+    (user) => !user.bot && user.id !== message.author.id
+  );
   let members = await getMembers(message.guildId, Array.from(mentions.keys()));
-  if (content.includes('naughty')) {
+  if (content.includes("naughty")) {
     members = modifyKarma(members, -1);
-  } if (content.includes('nice')) {
+  }
+  if (content.includes("nice")) {
     members = modifyKarma(members, 1);
   }
   for (let i = 0; i < members.length; i += 1) {

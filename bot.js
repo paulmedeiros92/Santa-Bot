@@ -1,6 +1,6 @@
-const fs = require('fs');
-const { Client, Collection, Intents } = require('discord.js');
-const { discord } = require('./config.json');
+require("dotenv").config();
+const fs = require("fs");
+const { Client, Collection, Intents } = require("discord.js");
 
 // Create a new client instance
 const client = new Client({
@@ -14,14 +14,18 @@ const client = new Client({
 
 // Attach commands to client, so I can access the commands from other contexts
 client.commands = new Collection();
-const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
+const commandFiles = fs
+  .readdirSync("./commands")
+  .filter((file) => file.endsWith(".js"));
 commandFiles.forEach((file) => {
   // eslint-disable-next-line import/no-dynamic-require, global-require
   const command = require(`./commands/${file}`);
   client.commands.set(command.data.name, command);
 });
 
-const eventFiles = fs.readdirSync('./events').filter((file) => file.endsWith('.js'));
+const eventFiles = fs
+  .readdirSync("./events")
+  .filter((file) => file.endsWith(".js"));
 eventFiles.forEach((file) => {
   // eslint-disable-next-line import/no-dynamic-require, global-require
   const event = require(`./events/${file}`);
@@ -32,4 +36,4 @@ eventFiles.forEach((file) => {
   }
 });
 
-client.login(discord.token);
+client.login(process.env.DISCORD_TOKEN);

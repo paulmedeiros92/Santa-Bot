@@ -1,5 +1,4 @@
 node_modules/
 .vscode/
 activity.log
-startup.bat
-config.json
+.env
