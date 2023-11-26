@@ -1,9 +1,7 @@
-const log4js = require('../logger');
-const logger = log4js.buildLogger();
+import logger from '../logger.js';
 
-module.exports = {
+export default {
   name: 'interactionCreate',
-  once: false,
   async execute(interaction) {
     if (!interaction.isCommand()) return;
 

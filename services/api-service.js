@@ -1,41 +1,53 @@
-const https = require("https");
+import axios from "axios";
 
-const host = process.env.API_URL;
+const https = axios.create({
+  baseURL: process.env.API_URL,
+});
 
-exports.buildUserBase = async (guild) => {
+export async function buildUserBase(guild) {
   const members = await guild.members.fetch();
   const discordUsers = members
     .filter((member) => !member.user.bot)
     .map(({ user }) => ({
       discordId: user.id,
-      discordName: user.username,
+      discordName: user.displayName,
       discordGuildId: guild.id,
     }));
-  https.request(
-    { host, path: "discord/user/create", method: "POST" },
-    discordUsers
-  );
-};
+  return (await https.post(`discord/guild/${guild.id}/user`, discordUsers))
+    .data;
+}
 
-exports.addPresent = (userId, priority, description) =>
-  https.request(
-    { host, path: `discord/user/${userId}/present`, method: "POST" },
-    [{ priority, description }]
-  );
+export async function addPresent(guildId, userId, priority, description) {
+  return (
+    await https.post(`discord/guild/${guildId}/user/${userId}/present`, [
+      { priority, description },
+    ])
+  ).data;
+}
 
-exports.getUserPresents = (userId) =>
-  https.get({ host, path: `discord/user/${userId}/present` });
+export async function getUserPresents(guildId, userId) {
+  return (await https.get(`discord/guild/${guildId}/user/${userId}/present`))
+    .data;
+}
 
-exports.addMember = (guildId, user) =>
-  https.request({ host, path: `discord/user`, method: "POST" }, [
+export async function getGuildPresents(guildId) {
+  return (await https.get(`discord/guild/${guildId}/present`)).data;
+}
+
+export async function addMember(guildId, user) {
+  return https.post("discord/user", [
     { discordId: user.id, discordName: user.username, discordGuildId: guildId },
-  ]);
+  ]).data;
+}
 
-exports.getMembers = (guildId) =>
-  https.get({ host, path: `discord/guildId/${guildId}/users` });
+export async function getMembers(guildId, discordUserIds) {
+  return (
+    await https.get(`discord/guild/${guildId}/user`, {
+      params: { discordUserIds },
+    })
+  ).data;
+}
 
-exports.updateMembers = (members) =>
-  https.request(
-    { host, path: `discord/user`, method: "PUT" },
-    members.map(({ id, karma }) => ({ discordUserId: id, karma }))
-  );
+export async function updateMembers(guildId, users) {
+  return (await https.put(`discord/guild/${guildId}/user`, users)).data;
+}

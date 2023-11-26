@@ -1,38 +1,42 @@
-require("dotenv").config();
-const fs = require("fs");
-const { Client, Collection, Intents } = require("discord.js");
+import 'dotenv/config';
+import fs from 'fs';
+import { Client, Collection, GatewayIntentBits } from "discord.js";
+import logger from './logger.js';
 
 // Create a new client instance
 const client = new Client({
   intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MEMBERS,
-    Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildEmojisAndStickers,
+    GatewayIntentBits.MessageContent,
   ],
 });
 
-// Attach commands to client, so I can access the commands from other contexts
-client.commands = new Collection();
-const commandFiles = fs
-  .readdirSync("./commands")
-  .filter((file) => file.endsWith(".js"));
-commandFiles.forEach((file) => {
-  // eslint-disable-next-line import/no-dynamic-require, global-require
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.data.name, command);
-});
+client.on('ready', () => logger.info("Santa Bot is coming...to town."))
 
+// EVENTS
 const eventFiles = fs
   .readdirSync("./events")
   .filter((file) => file.endsWith(".js"));
-eventFiles.forEach((file) => {
-  // eslint-disable-next-line import/no-dynamic-require, global-require
-  const event = require(`./events/${file}`);
-  if (event.once) {
-    client.once(event.name, (...args) => event.execute(...args));
+eventFiles.forEach(async (file) => {
+  const event = await import(`./events/${file}`);
+  client.on(event.default.name, (...args) => event.default.execute(...args));
+});
+
+// COMMANDS
+client.commands = new Collection();
+
+const commandFiles = fs
+  .readdirSync("./commands")
+  .filter((file) => file.endsWith(".js"));
+commandFiles.forEach(async (file) => {
+  const command = (await import(`./commands/${file}`)).default;
+  if('data' in command && 'execute' in command) {
+    client.commands.set(command.data.name, command);
   } else {
-    client.on(event.name, (...args) => event.execute(...args));
+    console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
   }
 });
 

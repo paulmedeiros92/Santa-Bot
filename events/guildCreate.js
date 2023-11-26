@@ -1,12 +1,9 @@
-const { buildUserBase } = require('../services/firestore-service');
-const log4js = require('../logger');
-const { createRoles, createEmojis, evaluateAllUserRoles } = require('../services/ready-service');
+import { buildUserBase } from '../services/api-service.js';
+import logger from '../logger.js';
+import { createRoles, createEmojis, evaluateAllUserRoles } from '../services/ready-service.js';
 
-const logger = log4js.buildLogger();
-
-module.exports = {
+export default {
   name: 'guildCreate',
-  once: false,
   async execute(guild) {
     try {
       await buildUserBase(guild);

@@ -1,11 +1,9 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-const { addPresent, getUserPresents } = require("../services/api-service");
-const { buildUserPresentList } = require("../services/reply-service");
-const log4js = require("../logger");
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { addPresent, getUserPresents } from "../services/api-service.js";
+import { buildUserPresentList } from "../services/reply-service.js";
+import logger from "../logger.js";
 
-const logger = log4js.buildLogger();
-
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("present")
     .setDescription("Tell me what you want for X-mas!")
@@ -19,28 +17,28 @@ module.exports = {
         .setRequired(true)
     ),
   async execute(interaction) {
-    const rank = interaction.options.getInteger("rank");
+    const priority = interaction.options.getInteger("rank");
     const description = interaction.options.getString("description");
     try {
       await addPresent(
+        interaction.guildId,
         interaction.user.id,
-        rank,
-        interaction.user.description,
+        priority,
         description
       );
       const message = buildUserPresentList(
-        await getUserPresents(interaction.user.id),
-        interaction.user.username,
-        { description, rank }
+        await getUserPresents(interaction.guildId, interaction.user.id),
+        interaction.user.displayName,
+        { description, priority }
       );
       message.ephemeral = true;
       interaction.reply(message);
       logger.info(
-        `${interaction.user.username} added "${description}" to rank #${rank}`
+        `${interaction.user.displayName} added "${description}" to rank #${priority}`
       );
     } catch (error) {
       logger.error(
-        `User ${interaction.user.username} failed to add ${description} to rank #${rank}\n${error}`
+        `User ${interaction.user.displayName} failed to add ${description} to rank #${priority}\n${error}`
       );
     }
   },

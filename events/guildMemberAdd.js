@@ -1,9 +1,7 @@
-const { addMember } = require('../services/firestore-service');
-const log4js = require('../logger');
+import { addMember } from '../services/api-service.js';
+import logger from '../logger.js';
 
-const logger = log4js.buildLogger();
-
-module.exports = {
+export default {
   name: 'guildMemberAdd',
   once: false,
   async execute(guildMember) {

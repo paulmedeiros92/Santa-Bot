@@ -1,75 +1,93 @@
-const Discord = require('discord.js');
+import { EmbedBuilder, AttachmentBuilder } from "discord.js";
 
-exports.buildLeaderboard = (rows) => {
-  const treeFile = new Discord.MessageAttachment('Embed Images/tree.png');
-  const garlandFile = new Discord.MessageAttachment('Embed Images/garland.png');
-  const embedMsg = new Discord.MessageEmbed()
-    .setColor('#02731e')
-    .setTitle('LEADERBOARD')
-    .setThumbnail('attachment://tree.png')
-    .setImage('attachment://garland.png');
+export function buildLeaderboard(rows) {
+  const treeFile = new AttachmentBuilder("Embed Images/tree.png");
+  const garlandFile = new AttachmentBuilder("Embed Images/garland.png");
+  const embedMsg = new EmbedBuilder()
+    .setColor("#02731e")
+    .setTitle("LEADERBOARD")
+    .setThumbnail("attachment://tree.png")
+    .setImage("attachment://garland.png");
 
-  for (let i = 0; i < rows.length; i += 1) {
-    const position = i + 1;
+  rows.forEach(({ discordName, karma }, index) => {
+    const position = index + 1;
     if (position === 1) {
-      embedMsg.addField(`#${position} ${rows[i].username}`, `${rows[i].karma} karma`, false);
+      embedMsg.addFields({
+        name: `#${position} ${discordName}`,
+        value: `karma: ${karma}`,
+      });
     } else {
-      embedMsg.addField(`#${position} ${rows[i].username}`, `${rows[i].karma} karma`, true);
+      embedMsg.addFields({
+        name: `#${position} ${discordName}`,
+        value: `karma: ${karma}`,
+      });
     }
-  }
+  });
 
   return { embeds: [embedMsg], files: [treeFile, garlandFile] };
-};
+}
 
-exports.buildUserPresentList = (presents, username, present = false) => {
-  const treeFile = new Discord.MessageAttachment('Embed Images/tree.png');
-  const garlandFile = new Discord.MessageAttachment('Embed Images/garland.png');
-  const embedMsg = new Discord.MessageEmbed()
-    .setColor('#02731e')
-    .setTitle(`${username}'s List`)
-    .setThumbnail('attachment://tree.png')
-    .setImage('attachment://garland.png');
+export function buildUserPresentList(presents, displayName, present = false) {
+  const treeFile = new AttachmentBuilder("Embed Images/tree.png");
+  const garlandFile = new AttachmentBuilder("Embed Images/garland.png");
+  const embedMsg = new EmbedBuilder()
+    .setColor("#02731e")
+    .setTitle(`${displayName}'s List`)
+    .setThumbnail("attachment://tree.png")
+    .setImage("attachment://garland.png");
 
   if (present) {
-    embedMsg.setDescription(`Added ${present.description} to rank #${present.rank}`);
-  } if (presents.length === 0) {
-    embedMsg.addField('Doesn\'t believe in Santa');
+    embedMsg.setDescription(
+      `Added ${present.description} to rank #${present.rank}`
+    );
+  }
+  if (presents.length === 0) {
+    embedMsg.addFields({ name: "Doesn't believe in Santa" });
   } else {
-    presents.forEach(({ rank, description }) => {
-      embedMsg.addField(`#${rank}`, description, true);
-    });
+    const fields = presents.map(({ priority, description }) => ({
+      name: `#${priority}`,
+      value: description,
+    }));
+    embedMsg.addFields(...fields);
   }
   return { embeds: [embedMsg], files: [treeFile, garlandFile] };
-};
+}
 
-exports.buildSantasPresentList = (presents) => {
-  const treeFile = new Discord.MessageAttachment('Embed Images/tree.png');
-  const garlandFile = new Discord.MessageAttachment('Embed Images/garland.png');
-  const embedMsg = new Discord.MessageEmbed()
-    .setColor('#02731e')
-    .setTitle('Santa\'s List')
-    .setThumbnail('attachment://tree.png')
-    .setImage('attachment://garland.png');
+export function buildSantasPresentList(presents) {
+  const treeFile = new AttachmentBuilder("Embed Images/tree.png");
+  const garlandFile = new AttachmentBuilder("Embed Images/garland.png");
+  const embedMsg = new EmbedBuilder()
+    .setColor("#02731e")
+    .setTitle("Santa's List")
+    .setThumbnail("attachment://tree.png")
+    .setImage("attachment://garland.png");
 
   const users = new Map();
   presents.forEach((present) => {
-    const oldPresents = users.get(present.username);
+    const oldPresents = users.get(present.discordName);
     if (oldPresents) {
-      users.set(present.username, [present, ...users.get(present.username)]);
+      users.set(present.discordName, [
+        present,
+        ...users.get(present.discordName),
+      ]);
     } else {
-      users.set(present.username, [present]);
+      users.set(present.discordName, [present]);
     }
   });
-  users.forEach((listItems, username) => {
-    let content = '';
-    listItems.sort((presentA, presentB) => presentA.rank - presentB.rank);
+  users.forEach((listItems, discordName) => {
+    let value = "";
+    listItems.sort(
+      (presentA, presentB) => presentA.priority - presentB.priority
+    );
     if (listItems.length > 0) {
-      content += listItems.map((present) => `#${present.rank} ${present.description}`).join('\n');
+      value += listItems
+        .map((present) => `#${present.priority} ${present.description}`)
+        .join("\n");
     } else {
-      content += ' doesn\'t believe in Santa Bot.';
+      value += " doesn't believe in Santa Bot.";
     }
-    embedMsg.addField(`${username}'s list:`, content, false);
+    embedMsg.addFields({ name: `${discordName}'s list:`, value });
   });
 
   return { embeds: [embedMsg], files: [treeFile, garlandFile] };
-};
+}

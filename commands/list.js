@@ -1,14 +1,12 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-const { getUserPresents } = require("../services/api-service");
-const {
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { getUserPresents, getGuildPresents } from "../services/api-service.js";
+import {
   buildUserPresentList,
-  // buildSantasPresentList,
-} = require("../services/reply-service");
-const log4js = require("../logger");
+  buildSantasPresentList,
+} from "../services/reply-service.js";
+import logger from "../logger.js";
 
-const logger = log4js.buildLogger();
-
-module.exports = {
+export default {
   data: new SlashCommandBuilder()
     .setName("list")
     .setDescription("Peek at a present list")
@@ -20,32 +18,31 @@ module.exports = {
         .setName("public")
         .setDescription("Make this post public (everyone can see)")
     ),
-  async execute(commandInteraction) {
-    const friend = commandInteraction.options.getUser("friend");
+  async execute(interaction) {
+    const friend = interaction.options.getUser("friend");
 
     try {
       let message;
       if (friend) {
         message = buildUserPresentList(
-          friend.username,
-          await getUserPresents(friend.id)
+          await getUserPresents(interaction.guildId, friend.id),
+          friend.displayName
+        );
+      } else {
+        message = buildSantasPresentList(
+          await getGuildPresents(interaction.guildId)
         );
       }
-      // } else {
-      //   message = buildSantasPresentList(
-      //     await getUserPresents(commandInteraction.guildId)
-      //   );
-      // }
-      message.ephemeral = !commandInteraction.options.getBoolean("public");
-      commandInteraction.reply(message);
+      message.ephemeral = !interaction.options.getBoolean("public");
+      interaction.reply(message);
       logger.info(
-        `${commandInteraction.user.username} looked at "${
+        `${interaction.user.username} looked at "${
           friend ? friend.username : "everyone"
         }"'s presents`
       );
     } catch (error) {
       logger.error(
-        `User ${commandInteraction.user.username} failed to look at ${friend.username}'s presents\n${error}`
+        `User ${interaction.user.username} failed to look at ${friend.username}'s presents\n${error}`
       );
     }
   },

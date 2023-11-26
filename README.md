@@ -15,3 +15,6 @@ Features:
   * Karma Tracking along with Naughty, Nice, and Ninja roles
   * Private role specific channels
   * Custom emoji for each role
+
+Roles: 
+  * Bot role needs to be above the naughty nice and ninja roles to be able to manipulate them

@@ -1,18 +1,11 @@
-const log4js = require("../logger");
-const { getMembers, updateMembers } = require("./api-service");
+import logger from "../logger.js";
+import { getMembers, updateMembers } from "./api-service.js";
 
-const logger = log4js.buildLogger();
-
-function modifyKarma(members, delta) {
-  return members.map(({ id, username, karma }) => {
-    if (karma) {
-      return { id, username, karma: karma + delta };
-    }
-    return { id, username, karma: delta };
-  });
+function modifyKarma(members, delta = 0) {
+  return members.map((member) => ({...member, karma: member.karma + delta}));
 }
 
-exports.addRemoveRole = async (userId, guild, karma = 0) => {
+export async function addRemoveRole(userId, guild, karma = 0) {
   const roles = guild.roles.cache.filter((role) =>
     ["Naughty", "Nice", "Ninja"].includes(role.name)
   );
@@ -40,7 +33,7 @@ exports.addRemoveRole = async (userId, guild, karma = 0) => {
   );
 };
 
-exports.parseKarmaMessage = async (message) => {
+export async function parseKarmaMessage(message) {
   const content = message.content.toLowerCase();
   if (!(content.includes("naughty") || content.includes("nice"))) {
     return [];
@@ -49,17 +42,15 @@ exports.parseKarmaMessage = async (message) => {
   const mentions = message.mentions.users.filter(
     (user) => !user.bot && user.id !== message.author.id
   );
-  let members = await getMembers(message.guildId, Array.from(mentions.keys()));
+  let users = await getMembers(message.guildId, Array.from(mentions.keys()));
   if (content.includes("naughty")) {
-    members = modifyKarma(members, -1);
+    users = modifyKarma(users, -1);
   }
   if (content.includes("nice")) {
-    members = modifyKarma(members, 1);
+    users = modifyKarma(users, 1);
   }
-  for (let i = 0; i < members.length; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    await this.addRemoveRole(members[i].id, message.guild, members[i].karma);
-  }
-  await updateMembers(message.guildId, members);
-  return members;
+
+  await Promise.all(users.map(({discordId, karma}) => addRemoveRole(discordId, message.guild, karma)));
+  await updateMembers(message.guildId, users);
+  return users;
 };

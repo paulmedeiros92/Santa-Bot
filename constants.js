@@ -1,4 +1,4 @@
-exports.emojis = {
+export const emojis = {
   naughty: [
     {
       attachment: './Santa Bot Emoji/Naughty/coal.png',
@@ -26,7 +26,7 @@ exports.emojis = {
     },
   ],
 };
-exports.roles = [
+export const roles = [
   {
     name: 'Naughty',
     color: 'RED',

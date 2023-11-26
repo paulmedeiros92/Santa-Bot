@@ -1,12 +1,10 @@
-const { addRemoveRole } = require("./message-service");
-const log4js = require("../logger");
+import { addRemoveRole } from "./message-service.js";
+import logger from "../logger.js";
 
-const { roles, emojis } = require("../constants");
-const { getMembers } = require("./api-service");
+import { roles, emojis } from "../constants.js";
+import { getMembers } from "./api-service.js";
 
-const logger = log4js.buildLogger();
-
-exports.createEmojis = async (guild) => {
+export async function createEmojis(guild) {
   Object.keys(emojis).forEach((roleName) => {
     const specificRole = guild.roles.cache.find(
       (role) => role.name.toLowerCase() === roleName
@@ -31,9 +29,9 @@ exports.createEmojis = async (guild) => {
       logger.error(`Could not find "${roleName}" role`);
     }
   });
-};
+}
 
-exports.createRoles = (guild) => {
+export function createRoles(guild) {
   const createdRoles = [];
   roles.forEach((roleConfig) => {
     if (!guild.roles.cache.find((role) => role.name === roleConfig.name)) {
@@ -41,12 +39,11 @@ exports.createRoles = (guild) => {
     }
   });
   return createdRoles;
-};
+}
 
-exports.evaluateAllUserRoles = async (guild) => {
-  const members = await getMembers(guild.id);
-  for (let i = 0; i < members.length; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    await addRemoveRole(members[i].id, guild, members[i].karma);
-  }
-};
+export async function evaluateAllUserRoles(guild) {
+  const users = await getMembers(guild.id);
+  return Promise.all(
+    users.map(({ discordId, karma }) => addRemoveRole(discordId, guild, karma))
+  );
+}

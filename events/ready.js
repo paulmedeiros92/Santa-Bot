@@ -1,16 +1,13 @@
-const { buildUserBase } = require("../services/api-service");
-const log4js = require("../logger");
-const {
+import { buildUserBase } from "../services/api-service.js";
+import logger from "../logger.js";
+import {
   createRoles,
   createEmojis,
   evaluateAllUserRoles,
-} = require("../services/ready-service");
+} from "../services/ready-service.js";
 
-const logger = log4js.buildLogger();
-
-module.exports = {
+export default {
   name: "ready",
-  once: true,
   async execute(client) {
     try {
       await Promise.all(
