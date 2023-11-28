@@ -21,11 +21,11 @@ export default {
       message.ephemeral = !commandInteraction.options.getBoolean("public");
       commandInteraction.reply(message);
       logger.info(
-        `${commandInteraction.user.username} successfully executed the karma command`
+        `${commandInteraction.user.id} successfully executed the karma command`
       );
     } catch (error) {
       logger.error(
-        `${commandInteraction.user.username} failed to execute karma command:\n${error}`
+        `${commandInteraction.user.id} failed to execute karma command:\n${error}`
       );
       logger.error(error);
     }

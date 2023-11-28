@@ -8,9 +8,9 @@ export async function buildUserBase(guild) {
   const members = await guild.members.fetch();
   const discordUsers = members
     .filter((member) => !member.user.bot)
-    .map(({ user }) => ({
+    .map(({ user, displayName }) => ({
       discordId: user.id,
-      discordName: user.displayName,
+      discordName: displayName,
       discordGuildId: guild.id,
     }));
   return (await https.post(`discord/guild/${guild.id}/user`, discordUsers))

@@ -11,20 +11,20 @@ export function buildLeaderboard(rows) {
       .setImage("attachment://garland.png"),
   ];
 
-  const embedIndex = 0;
+  let embedIndex = 0;
   rows.forEach(({ discordName, karma }, index) => {
     const position = index + 1;
-    if (index / 25 >= 1) {
-      embeds.push(
-        new EmbedBuilder()
-          .setColor("#02731e")
-          .setTitle("LEADERBOARD")
-          .setThumbnail("attachment://tree.png")
-          .setImage("attachment://garland.png")
-      );
-      embedIndex++;
-    }
     if (index % 25 === 0) {
+      if (index / 25 >= 1) {
+        embeds.push(
+          new EmbedBuilder()
+            .setColor("#02731e")
+            .setTitle("LEADERBOARD")
+            .setThumbnail("attachment://tree.png")
+            .setImage("attachment://garland.png")
+        );
+        embedIndex++;
+      }
       embeds[embedIndex].addFields({
         name: `#${position} ${discordName}`,
         value: `karma: ${karma}`,
@@ -51,7 +51,7 @@ export function buildUserPresentList(presents, displayName, present = false) {
 
   if (present) {
     embedMsg.setDescription(
-      `Added ${present.description} to rank #${present.rank}`
+      `Added ${present.description} to rank #${present.priority}`
     );
   }
   if (presents.length === 0) {

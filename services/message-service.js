@@ -2,7 +2,7 @@ import logger from "../logger.js";
 import { getMembers, updateMembers } from "./api-service.js";
 
 function modifyKarma(members, delta = 0) {
-  return members.map((member) => ({...member, karma: member.karma + delta}));
+  return members.map((member) => ({ ...member, karma: member.karma + delta }));
 }
 
 export async function addRemoveRole(userId, guild, karma = 0) {
@@ -22,16 +22,16 @@ export async function addRemoveRole(userId, guild, karma = 0) {
   }
   let modifiedMember = await memberRoles.add(currentRole);
   logger.info(
-    `${currentRole.name} role added to: ${modifiedMember.user.username}`
+    `${currentRole.name} role added to: ${modifiedMember.displayName}`
   );
   const rolesToRemove = roles.filter((role) => role.name !== currentRole.name);
   modifiedMember = await memberRoles.remove(rolesToRemove);
   logger.info(
     `${rolesToRemove
       .map((role) => role.name)
-      .join(" and ")} roles removed from: ${modifiedMember.user.username}`
+      .join(" and ")} roles removed from: ${modifiedMember.displayName}`
   );
-};
+}
 
 export async function parseKarmaMessage(message) {
   const content = message.content.toLowerCase();
@@ -50,7 +50,11 @@ export async function parseKarmaMessage(message) {
     users = modifyKarma(users, 1);
   }
 
-  await Promise.all(users.map(({discordId, karma}) => addRemoveRole(discordId, message.guild, karma)));
+  await Promise.all(
+    users.map(({ discordId, karma }) =>
+      addRemoveRole(discordId, message.guild, karma)
+    )
+  );
   await updateMembers(message.guildId, users);
   return users;
-};
+}

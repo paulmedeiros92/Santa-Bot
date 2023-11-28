@@ -34,11 +34,11 @@ export default {
       message.ephemeral = true;
       interaction.reply(message);
       logger.info(
-        `${interaction.user.displayName} added "${description}" to rank #${priority}`
+        `${interaction.user.id} added "${description}" to rank #${priority}`
       );
     } catch (error) {
       logger.error(
-        `User ${interaction.user.displayName} failed to add ${description} to rank #${priority}\n${error}`
+        `User ${interaction.user.id} failed to add ${description} to rank #${priority}\n${error}`
       );
     }
   },
