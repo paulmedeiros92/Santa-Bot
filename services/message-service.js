@@ -42,19 +42,24 @@ export async function parseKarmaMessage(message) {
   const mentions = message.mentions.users.filter(
     (user) => !user.bot && user.id !== message.author.id
   );
-  let users = await getMembers(message.guildId, Array.from(mentions.keys()));
-  if (content.includes("naughty")) {
-    users = modifyKarma(users, -1);
-  }
-  if (content.includes("nice")) {
-    users = modifyKarma(users, 1);
-  }
 
-  await Promise.all(
-    users.map(({ discordId, karma }) =>
-      addRemoveRole(discordId, message.guild, karma)
-    )
-  );
-  await updateMembers(message.guildId, users);
+  const userIds = Array.from(mentions.keys());
+  let users = [];
+  if (userIds.length) {
+    users = await getMembers(message.guildId, Array.from(mentions.keys()));
+    if (content.includes("naughty")) {
+      users = modifyKarma(users, -1);
+    }
+    if (content.includes("nice")) {
+      users = modifyKarma(users, 1);
+    }
+
+    await Promise.all(
+      users.map(({ discordId, karma }) =>
+        addRemoveRole(discordId, message.guild, karma)
+      )
+    );
+    await updateMembers(message.guildId, users);
+  }
   return users;
 }
