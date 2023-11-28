@@ -27,6 +27,7 @@ export default {
       logger.error(
         `${commandInteraction.user.username} failed to execute karma command:\n${error}`
       );
+      logger.error(error);
     }
   },
 };

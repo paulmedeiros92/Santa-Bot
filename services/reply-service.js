@@ -3,28 +3,41 @@ import { EmbedBuilder, AttachmentBuilder } from "discord.js";
 export function buildLeaderboard(rows) {
   const treeFile = new AttachmentBuilder("Embed Images/tree.png");
   const garlandFile = new AttachmentBuilder("Embed Images/garland.png");
-  const embedMsg = new EmbedBuilder()
-    .setColor("#02731e")
-    .setTitle("LEADERBOARD")
-    .setThumbnail("attachment://tree.png")
-    .setImage("attachment://garland.png");
+  const embeds = [
+    new EmbedBuilder()
+      .setColor("#02731e")
+      .setTitle("LEADERBOARD")
+      .setThumbnail("attachment://tree.png")
+      .setImage("attachment://garland.png"),
+  ];
 
+  const embedIndex = 0;
   rows.forEach(({ discordName, karma }, index) => {
     const position = index + 1;
-    if (position === 1) {
-      embedMsg.addFields({
+    if (index / 25 >= 1) {
+      embeds.push(
+        new EmbedBuilder()
+          .setColor("#02731e")
+          .setTitle("LEADERBOARD")
+          .setThumbnail("attachment://tree.png")
+          .setImage("attachment://garland.png")
+      );
+      embedIndex++;
+    }
+    if (index % 25 === 0) {
+      embeds[embedIndex].addFields({
         name: `#${position} ${discordName}`,
         value: `karma: ${karma}`,
       });
     } else {
-      embedMsg.addFields({
+      embeds[embedIndex].addFields({
         name: `#${position} ${discordName}`,
         value: `karma: ${karma}`,
       });
     }
   });
 
-  return { embeds: [embedMsg], files: [treeFile, garlandFile] };
+  return { embeds, files: [treeFile, garlandFile] };
 }
 
 export function buildUserPresentList(presents, displayName, present = false) {
