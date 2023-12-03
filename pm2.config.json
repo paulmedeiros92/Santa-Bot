@@ -1,0 +1,10 @@
+{
+  "apps": [
+    {
+      "name": "santa-bot",
+      "script": "./bot.js",
+      "watch": true,
+      "ignore_watch": ["activity.log", "node_modules"]
+    }
+  ]
+}
