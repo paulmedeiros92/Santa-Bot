@@ -1,0 +1,9 @@
+{
+  "apps": [
+    {
+      "name": "santa-bot",
+      "script": "./src/app.js",
+      "watch": true
+    }
+  ]
+}

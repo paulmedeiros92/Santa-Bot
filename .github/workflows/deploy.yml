@@ -1,0 +1,35 @@
+name: DEPLOY
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.x"
+      - run: npm ci
+      - name: rsync deployment
+        uses: burnett01/rsync-deployments@6.0.0
+        with:
+          switches: -avzr --delete
+          path: ./
+          remote_path: ${{ vars.PATH }}
+          remote_host: ${{ vars.GOOGLE_HOST }}
+          remote_user: ${{ vars.USERNAME }}
+          remote_key: ${{ secrets.GOOGLE_SSH }}
+      - name: Start up commands
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ vars.GOOGLE_HOST }}
+          username: ${{ vars.USERNAME }}
+          key: ${{ secrets.GOOGLE_SSH }}
+          port: 22
+          script: |
+            cd ${{ vars.PATH }}
+            echo "${{ secrets.ENV }}" >> .env
