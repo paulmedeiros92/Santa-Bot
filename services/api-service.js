@@ -51,3 +51,11 @@ export async function getMembers(guildId, discordUserIds) {
 export async function updateMembers(guildId, users) {
   return (await https.put(`discord/guild/${guildId}/user`, users)).data;
 }
+
+export async function getAllGuilds() {
+  return (await https.get("discord/guild")).data;
+}
+
+export async function addGuilds(guildIds) {
+  return (await https.post("discord/guild", guildIds)).data;
+}

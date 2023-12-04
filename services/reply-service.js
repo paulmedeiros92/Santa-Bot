@@ -41,29 +41,39 @@ export function buildLeaderboard(rows) {
 }
 
 export function buildUserPresentList(presents, displayName, present = false) {
-  const treeFile = new AttachmentBuilder("Embed Images/tree.png");
   const garlandFile = new AttachmentBuilder("Embed Images/garland.png");
+  const coalFile = new AttachmentBuilder("Embed Images/coal.png");
+  const treeFile = new AttachmentBuilder("Embed Images/tree.png");
+  const files = [garlandFile];
   const embedMsg = new EmbedBuilder()
     .setColor("#02731e")
     .setTitle(`${displayName}'s List`)
     .setThumbnail("attachment://tree.png")
     .setImage("attachment://garland.png");
 
-  if (present) {
-    embedMsg.setDescription(
-      `Added ${present.description} to rank #${present.priority}`
-    );
-  }
   if (presents.length === 0) {
-    embedMsg.addFields({ name: "Doesn't believe in Santa" });
+    embedMsg
+      .setDescription("Doesn't believe in Santa")
+      .setThumbnail("attachment://coal.png");
+    files.push(coalFile);
   } else {
+    embedMsg.setThumbnail("attachment://tree.png");
+    files.push(treeFile);
+
+    if (present) {
+      embedMsg.setDescription(
+        `Added ${present.description} to rank #${present.priority}`
+      );
+    }
+
     const fields = presents.map(({ priority, description }) => ({
       name: `#${priority}`,
       value: description,
     }));
     embedMsg.addFields(...fields);
   }
-  return { embeds: [embedMsg], files: [treeFile, garlandFile] };
+
+  return { embeds: [embedMsg], files };
 }
 
 export function buildSantasPresentList(presents) {
