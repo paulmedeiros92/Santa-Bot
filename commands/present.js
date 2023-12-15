@@ -19,6 +19,7 @@ export default {
   async execute(interaction) {
     const priority = interaction.options.getInteger("rank");
     const description = interaction.options.getString("description");
+    const displayName = interaction.user?.displayName ?? interaction.user.id;
     try {
       await addPresent(
         interaction.guildId,
@@ -33,12 +34,10 @@ export default {
       );
       message.ephemeral = true;
       interaction.reply(message);
-      logger.info(
-        `${interaction.user.id} added "${description}" to rank #${priority}`
-      );
+      logger.info(`${displayName} added "${description}" to rank #${priority}`);
     } catch (error) {
       logger.error(
-        `User ${interaction.user.id} failed to add ${description} to rank #${priority}\n${error}`
+        `User ${displayName} failed to add ${description} to rank #${priority}\n${error}`
       );
     }
   },

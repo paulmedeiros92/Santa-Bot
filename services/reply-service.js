@@ -3,28 +3,20 @@ import { EmbedBuilder, AttachmentBuilder } from "discord.js";
 export function buildLeaderboard(rows) {
   const treeFile = new AttachmentBuilder("Embed Images/tree.png");
   const garlandFile = new AttachmentBuilder("Embed Images/garland.png");
-  const embeds = [
-    new EmbedBuilder()
-      .setColor("#02731e")
-      .setTitle("LEADERBOARD")
-      .setThumbnail("attachment://tree.png")
-      .setImage("attachment://garland.png"),
-  ];
+  const embeds = [];
 
   let embedIndex = 0;
   rows.forEach(({ discordName, karma }, index) => {
     const position = index + 1;
     if (index % 25 === 0) {
-      if (index / 25 >= 1) {
-        embeds.push(
-          new EmbedBuilder()
-            .setColor("#02731e")
-            .setTitle("LEADERBOARD")
-            .setThumbnail("attachment://tree.png")
-            .setImage("attachment://garland.png")
-        );
-        embedIndex++;
-      }
+      embeds.push(
+        new EmbedBuilder()
+          .setColor("#02731e")
+          .setTitle("LEADERBOARD")
+          .setThumbnail("attachment://tree.png")
+          .setImage("attachment://garland.png")
+      );
+      if (index / 25 >= 1) embedIndex++;
       embeds[embedIndex].addFields({
         name: `#${position} ${discordName}`,
         value: `karma: ${karma}`,
@@ -79,11 +71,7 @@ export function buildUserPresentList(presents, displayName, present = false) {
 export function buildSantasPresentList(presents) {
   const treeFile = new AttachmentBuilder("Embed Images/tree.png");
   const garlandFile = new AttachmentBuilder("Embed Images/garland.png");
-  const embedMsg = new EmbedBuilder()
-    .setColor("#02731e")
-    .setTitle("Santa's List")
-    .setThumbnail("attachment://tree.png")
-    .setImage("attachment://garland.png");
+  const embeds = [];
 
   const users = new Map();
   presents.forEach((present) => {
@@ -97,7 +85,19 @@ export function buildSantasPresentList(presents) {
       users.set(present.discordName, [present]);
     }
   });
+  let iEmbed = 0;
+  let iUsers = 0;
   users.forEach((listItems, discordName) => {
+    if (iUsers % 25 === 0) {
+      embeds.push(
+        new EmbedBuilder()
+          .setColor("#02731e")
+          .setTitle("Santa's List")
+          .setThumbnail("attachment://tree.png")
+          .setImage("attachment://garland.png")
+      );
+      if (iUsers / 25 > 1) iEmbed++;
+    }
     let value = "";
     listItems.sort(
       (presentA, presentB) => presentA.priority - presentB.priority
@@ -109,8 +109,21 @@ export function buildSantasPresentList(presents) {
     } else {
       value += " doesn't believe in Santa Bot.";
     }
-    embedMsg.addFields({ name: `${discordName}'s list:`, value });
+
+    while (value.length > 1024) {
+      embeds[iEmbed].addFields({
+        name: `${discordName}'s list:`,
+        value: `${value.substring(0, 1020)}...`,
+      });
+      value = value.slice(1020);
+      iUsers++;
+    }
+    embeds[iEmbed].addFields({
+      name: `${discordName}'s list:`,
+      value,
+    });
+    iUsers++;
   });
 
-  return { embeds: [embedMsg], files: [treeFile, garlandFile] };
+  return { embeds, files: [treeFile, garlandFile] };
 }

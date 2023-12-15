@@ -20,13 +20,17 @@ export default {
     ),
   async execute(interaction) {
     const friend = interaction.options.getUser("friend");
+    let friendDisplay = "N/A";
+
+    const displayName = interaction.user?.displayName ?? interaction.user.id;
 
     try {
       let message;
       if (friend) {
+        friendDisplay = friend?.displayName ?? friend.id;
         message = buildUserPresentList(
           await getUserPresents(interaction.guildId, friend.id),
-          friend.displayName
+          friendDisplay
         );
       } else {
         message = buildSantasPresentList(
@@ -36,13 +40,13 @@ export default {
       message.ephemeral = !interaction.options.getBoolean("public");
       interaction.reply(message);
       logger.info(
-        `${interaction.user.username} looked at "${
-          friend ? friend.username : "everyone"
+        `${displayName} looked at "${
+          friend ? friendDisplay : "everyone"
         }"'s presents`
       );
     } catch (error) {
       logger.error(
-        `User ${interaction.user.username} failed to look at ${friend.username}'s presents\n${error}`
+        `User ${displayName} failed to look at ${friendDisplay}'s presents\n${error}`
       );
     }
   },

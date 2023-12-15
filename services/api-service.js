@@ -34,9 +34,9 @@ export async function getGuildPresents(guildId) {
   return (await https.get(`discord/guild/${guildId}/present`)).data;
 }
 
-export async function addMember(guildId, user) {
+export async function addMember(guildId, displayName, userId) {
   return https.post("discord/user", [
-    { discordId: user.id, discordName: user.username, discordGuildId: guildId },
+    { discordId: userId, discordName: displayName, discordGuildId: guildId },
   ]).data;
 }
 
