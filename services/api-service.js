@@ -4,19 +4,6 @@ const https = axios.create({
   baseURL: process.env.API_URL,
 });
 
-export async function buildUserBase(guild) {
-  const members = await guild.members.fetch();
-  const discordUsers = members
-    .filter((member) => !member.user.bot)
-    .map(({ user, displayName }) => ({
-      discordId: user.id,
-      discordName: displayName,
-      discordGuildId: guild.id,
-    }));
-  return (await https.post(`discord/guild/${guild.id}/user`, discordUsers))
-    .data;
-}
-
 export async function addPresent(guildId, userId, priority, description) {
   return (
     await https.post(`discord/guild/${guildId}/user/${userId}/present`, [

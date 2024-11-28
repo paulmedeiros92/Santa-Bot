@@ -1,6 +1,18 @@
 import { addRemoveRole } from "./message-service.js";
 import { roles } from "../constants.js";
-import { getMembers } from "./api-service.js";
+import { getMembers, updateMembers } from "./api-service.js";
+
+export async function buildUserBase(guild) {
+  const members = await guild.members.fetch();
+  const discordUsers = members
+    .filter((member) => !member.user.bot)
+    .map(({ user, displayName }) => ({
+      discordId: user.id,
+      discordName: displayName,
+      discordGuildId: guild.id,
+    }));
+  return updateMembers(guild.id, discordUsers);
+}
 
 export function createRoles(guild) {
   const createdRoles = [];

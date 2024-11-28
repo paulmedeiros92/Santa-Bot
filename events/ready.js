@@ -1,10 +1,10 @@
 import {
   addGuilds,
-  buildUserBase,
   getAllGuilds,
 } from "../services/api-service.js";
 import logger from "../logger.js";
 import {
+  buildUserBase,
   createRoles,
   evaluateAllUserRoles,
 } from "../services/ready-service.js";
@@ -19,7 +19,7 @@ export default {
       const unInitialized = client.guilds.cache.filter(
         ({ id }) => !initializedIds.includes(id)
       );
-      await Promise.all(unInitialized.map((guild) => buildUserBase(guild)));
+      await Promise.all(client.guilds.cache.map((guild) => buildUserBase(guild)));
       await Promise.all(unInitialized.map((guild) => createRoles(guild)));
       await Promise.all(
         unInitialized.map((guild) => evaluateAllUserRoles(guild))
