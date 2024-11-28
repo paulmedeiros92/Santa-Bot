@@ -14,7 +14,7 @@ export default {
     ),
   async execute(commandInteraction) {
     try {
-      const members = (await getMembers(commandInteraction.guildId, [])).sort(
+      const members = (await getMembers(commandInteraction.guildId, [])).filter((member) => member.karma !== 0).sort(
         (memberA, memberB) => memberB.karma - memberA.karma
       );
       const message = buildLeaderboard(members);
