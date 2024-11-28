@@ -12,7 +12,7 @@ export function buildLeaderboard(rows) {
       embeds.push(
         new EmbedBuilder()
           .setColor("#02731e")
-          .setTitle("LEADERBOARD")
+          .setTitle(`${new Date().getFullYear()} LEADERBOARD`)
           .setThumbnail("attachment://tree.png")
           .setImage("attachment://garland.png")
       );
@@ -92,7 +92,7 @@ export function buildSantasPresentList(presents) {
       embeds.push(
         new EmbedBuilder()
           .setColor("#02731e")
-          .setTitle("Santa's List")
+          .setTitle(`Santa's ${new Date().getFullYear()} List`)
           .setThumbnail("attachment://tree.png")
           .setImage("attachment://garland.png")
       );

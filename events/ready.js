@@ -6,7 +6,6 @@ import {
 import logger from "../logger.js";
 import {
   createRoles,
-  createEmojis,
   evaluateAllUserRoles,
 } from "../services/ready-service.js";
 
@@ -20,11 +19,10 @@ export default {
       const unInitialized = client.guilds.cache.filter(
         ({ id }) => !initializedIds.includes(id)
       );
-      await Promise.all(unInitialized.map((guild) => buildUserBase(guild)));
-      await Promise.all(unInitialized.map((guild) => createRoles(guild)));
-      await Promise.all(unInitialized.map((guild) => createEmojis(guild)));
+      await Promise.all(client.guilds.cache.map((guild) => buildUserBase(guild)));
+      await Promise.all(client.guilds.cache.map((guild) => createRoles(guild)));
       await Promise.all(
-        unInitialized.map((guild) => evaluateAllUserRoles(guild))
+        client.guilds.cache.map((guild) => evaluateAllUserRoles(guild))
       );
       await addGuilds(unInitialized.map(({ id }) => id));
       logger.info("Bot setup complete.");
